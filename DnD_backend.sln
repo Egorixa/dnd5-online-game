@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DnD_backend", "DnD_backend\DnD_backend.csproj", "{A87BCE74-9AA9-4C5B-9D0E-B41F42BB6650}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{5B9306D6-CFFD-4413-976B-982F6C50ABDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity", "Identity\Identity.csproj", "{D46A54C8-0E2F-4FBB-A40F-E6B92CD3FE9C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A87BCE74-9AA9-4C5B-9D0E-B41F42BB6650}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A87BCE74-9AA9-4C5B-9D0E-B41F42BB6650}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A87BCE74-9AA9-4C5B-9D0E-B41F42BB6650}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A87BCE74-9AA9-4C5B-9D0E-B41F42BB6650}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D46A54C8-0E2F-4FBB-A40F-E6B92CD3FE9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D46A54C8-0E2F-4FBB-A40F-E6B92CD3FE9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D46A54C8-0E2F-4FBB-A40F-E6B92CD3FE9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D46A54C8-0E2F-4FBB-A40F-E6B92CD3FE9C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D46A54C8-0E2F-4FBB-A40F-E6B92CD3FE9C} = {5B9306D6-CFFD-4413-976B-982F6C50ABDB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {11A70FBF-4066-4F08-BCB4-E7403925D623}
+	EndGlobalSection
+EndGlobal
