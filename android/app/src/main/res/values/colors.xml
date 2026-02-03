@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="dnd_red">#B71C1C</color>
+    <color name="dnd_red_light">#D32F2F</color>
+
+    <color name="light_background">#FFFFFF</color>
+    <color name="light_surface">#F5F5F5</color>
+    <color name="light_text_primary">#1E2129</color>
+
+    <color name="dark_background">#1E2129</color> <color name="dark_surface">#2C2F36</color>   <color name="dark_text_primary">#FFFFFF</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>
