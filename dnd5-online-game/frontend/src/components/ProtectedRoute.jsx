@@ -1,0 +1,16 @@
+// Обёртка маршрута: редирект на /login при отсутствии токена.
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+import useAuthStore from '../stores/authStore';
+
+const ProtectedRoute = () => {
+  const token = useAuthStore((state) => state.token);
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+};
+
+export default ProtectedRoute;

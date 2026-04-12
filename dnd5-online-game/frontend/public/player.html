@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DnD5 Player</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:wght@700&display=swap');
+
+    :root {
+      --bg: #fcfaf7;
+      --card: rgba(255,255,255,0.9);
+      --border: rgba(185,28,28,0.15);
+      --accent: #b91c1c;
+      --accent-hover: #991b1b;
+      --text: #1f2937;
+      --text2: #6b7280;
+      --err: #ef4444;
+      --ok: #22c55e;
+      --input-bg: rgba(255,255,255,0.6);
+    }
+
+    [data-theme='dark'] {
+      --bg: #0f172a;
+      --card: rgba(30,41,59,0.95);
+      --border: rgba(239,68,68,0.3);
+      --text: #f8fafc;
+      --text2: #94a3b8;
+      --input-bg: rgba(30,41,59,0.8);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family:'Inter',sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .topbar {
+      padding:12px 16px;
+      background: var(--card);
+      border-bottom:1px solid var(--border);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .topbar-title { font-family:'Lora',serif; font-size:1.1rem; }
+    .topbar-title span { color: var(--accent); }
+    .topbar-user { font-size:0.8rem; color: var(--text2); }
+    .topbar-actions { display:flex; gap:6px; align-items:center; }
+    .btn-logout {
+      background:transparent; border:1px solid var(--border); color: var(--text2);
+      padding:4px 10px; border-radius:8px; font-size:0.75rem; cursor:pointer;
+    }
+    .btn-theme {
+      background:transparent; border:1px solid var(--border); color: var(--text2);
+      padding:4px 10px; border-radius:8px; font-size:0.9rem; cursor:pointer; transition:0.2s;
+    }
+    .btn-theme:hover { border-color: var(--accent); color: var(--accent); }
+
+    .container { flex:1; padding:16px; max-width:500px; margin:0 auto; width:100%; }
+
+    .card {
+      background: var(--card); border:1px solid var(--border);
+      border-radius:16px; padding:24px; margin-bottom:16px;
+    }
+
+    h2 {
+      font-family:'Lora',serif; font-size:1.4rem; margin-bottom:16px;
+      background: linear-gradient(to right,#e11d48,#f97316);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    h3 { font-family:'Lora',serif; font-size:1.1rem; margin-bottom:12px; }
+
+    label {
+      display:block; font-size:0.75rem; font-weight:600; color: var(--text2);
+      text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;
+    }
+
+    input, select, textarea {
+      width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+      background: var(--input-bg); color: var(--text); font-family:'Inter',sans-serif;
+      font-size:0.9rem; margin-bottom:12px; outline:none; transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize:vertical; min-height:60px; }
+    select { cursor:pointer; }
+
+    .btn {
+      width:100%; padding:12px; border:none; border-radius:12px;
+      font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:600;
+      cursor:pointer; transition:0.2s; display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg,#b91c1c,#dc2626); color:white;
+      box-shadow: 0 4px 15px rgba(185,28,28,0.4);
+    }
+    .btn-primary:hover { transform:translateY(-1px); }
+    .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+    .btn-secondary { background:transparent; border:2px solid var(--border); color: var(--text); }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: rgba(239,68,68,0.15); border:2px solid rgba(239,68,68,0.3); color: var(--err); }
+
+    .error { color: var(--err); font-size:0.85rem; margin-bottom:12px; }
+    .success { color: var(--ok); font-size:0.85rem; margin-bottom:12px; }
+    .hint { color: var(--text2); font-size:0.8rem; margin-bottom:12px; }
+
+    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .input-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+
+    .abilities-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; margin-bottom:12px; }
+    .ability-item {
+      text-align:center; padding:8px; border:1px solid var(--border);
+      border-radius:10px; background: rgba(185,28,28,0.04);
+    }
+    .ability-item label { margin-bottom:2px; }
+    .ability-item input { width:60px; text-align:center; margin:4px auto 2px; display:block; }
+    .ability-mod { font-weight:700; color: var(--accent); font-size:0.9rem; }
+
+    .check-row { display:flex; align-items:center; gap:6px; padding:3px 0; font-size:0.85rem; }
+    .check-row input[type=checkbox] { width:16px; height:16px; margin:0; accent-color: var(--accent); }
+    .check-bonus { font-weight:700; color: var(--accent); min-width:28px; }
+
+    .section { margin-bottom:16px; }
+    .section-title {
+      font-size:0.85rem; font-weight:600; color: var(--text2); text-transform:uppercase;
+      letter-spacing:0.5px; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--border);
+    }
+
+    .session-code { font-size:2rem; font-weight:800; color: var(--accent); letter-spacing:3px; }
+
+    .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+    .status-connected { background: var(--ok); }
+    .status-disconnected { background: var(--err); }
+
+    .tab-bar { display:flex; gap:4px; margin-bottom:16px; }
+    .tab-btn {
+      flex:1; padding:8px; border:1px solid var(--border); border-radius:10px;
+      background:transparent; color: var(--text2); font-size:0.8rem;
+      font-family:'Inter',sans-serif; cursor:pointer; transition:0.2s;
+    }
+    .tab-btn.active {
+      background: rgba(185,28,28,0.15); border-color: var(--accent);
+      color: var(--accent); font-weight:600;
+    }
+
+    .hidden { display:none !important; }
+
+    .logo-section { text-align:center; padding:40px 0 20px; }
+    .logo-icon {
+      width:64px; height:64px; margin:0 auto 12px;
+      background: linear-gradient(135deg,#e11d48,#f97316); border-radius:50%;
+      display:flex; align-items:center; justify-content:center; font-size:2rem; color:white;
+    }
+
+    .room-list { display:flex; flex-direction:column; gap:8px; }
+    .room-item {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 14px; border:1px solid var(--border); border-radius:12px;
+      background: var(--card); cursor:pointer; transition:0.2s;
+    }
+    .room-item:hover { border-color: var(--accent); }
+    .room-item-name { font-weight:600; font-size:0.95rem; }
+    .room-item-code { font-size:0.8rem; color: var(--accent); font-weight:700; letter-spacing:1px; }
+    .room-list-empty { text-align:center; color: var(--text2); font-size:0.85rem; padding:12px 0; }
+  </style>
+</head>
+<body>
+
+<!-- ========== SCREEN: AUTH ========== -->
+<div id="screen-auth">
+  <div class="container">
+    <div class="logo-section">
+      <div class="logo-icon">&#9876;</div>
+      <h2 style="text-align:center">DnD5 Player</h2>
+      <p class="hint">Мобильная заглушка для игроков</p>
+      <button class="btn-theme" onclick="toggleTheme()" title="Тема">&#9789;</button>
+    </div>
+
+    <div class="card">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchAuthTab('login')">Вход</button>
+        <button class="tab-btn" onclick="switchAuthTab('register')">Регистрация</button>
+      </div>
+
+      <div id="auth-login">
+        <label>Логин</label>
+        <input id="login-login" placeholder="Имя пользователя">
+        <label>Пароль</label>
+        <input id="login-password" type="password" placeholder="Пароль">
+        <div id="login-error" class="error hidden"></div>
+        <button class="btn btn-primary" onclick="doLogin()">Войти</button>
+      </div>
+
+      <div id="auth-register" class="hidden">
+        <label>Логин</label>
+        <input id="reg-login" placeholder="Имя пользователя">
+        <label>Пароль</label>
+        <input id="reg-password" type="password" placeholder="Пароль">
+        <label>Подтверждение</label>
+        <input id="reg-confirm" type="password" placeholder="Повторите пароль">
+        <div id="reg-error" class="error hidden"></div>
+        <div id="reg-success" class="success hidden"></div>
+        <button class="btn btn-primary" onclick="doRegister()">Зарегистрироваться</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: JOIN ROOM ========== -->
+<div id="screen-join" class="hidden">
+  <div class="topbar">
+    <div class="topbar-title">DnD5 <span>Player</span></div>
+    <div class="topbar-actions">
+      <span class="topbar-user" id="join-username"></span>
+      <button class="btn-theme" onclick="toggleTheme()" title="Тема">&#9789;</button>
+      <button class="btn-logout" onclick="doLogout()">Выйти</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h2>Присоединиться к комнате</h2>
+      <label>Код комнаты</label>
+      <input id="room-code" placeholder="Введите код от Мастера" style="text-transform:uppercase; letter-spacing:2px; font-weight:700; text-align:center; font-size:1.2rem;">
+      <div id="join-error" class="error hidden"></div>
+      <button class="btn btn-primary" onclick="joinRoom()" style="margin-bottom:12px">Подключиться</button>
+    </div>
+
+    <!-- Available rooms -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin-bottom:0">Доступные комнаты</h3>
+        <button class="btn-logout" onclick="discoverRooms()" style="font-size:0.75rem">Обновить</button>
+      </div>
+      <div id="room-list" class="room-list">
+        <div class="room-list-empty">Поиск комнат...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Ваш персонаж</h3>
+      <label>Имя персонажа</label>
+      <input id="char-name" placeholder="Имя героя" value="Приключенец">
+
+      <div class="input-row">
+        <div><label>Раса</label>
+        <select id="char-race">
+          <option value="human">Человек</option><option value="elf">Эльф</option>
+          <option value="dwarf">Дварф</option><option value="halfling">Полурослик</option>
+          <option value="dragonborn">Драконорождённый</option><option value="gnome">Гном</option>
+          <option value="half-elf">Полуэльф</option><option value="half-orc">Полуорк</option>
+          <option value="tiefling">Тифлинг</option>
+        </select></div>
+        <div><label>Класс</label>
+        <select id="char-class">
+          <option value="fighter">Воин</option><option value="wizard">Волшебник</option>
+          <option value="rogue">Плут</option><option value="cleric">Жрец</option>
+          <option value="ranger">Следопыт</option><option value="paladin">Паладин</option>
+          <option value="barbarian">Варвар</option><option value="bard">Бард</option>
+          <option value="druid">Друид</option><option value="monk">Монах</option>
+          <option value="sorcerer">Чародей</option><option value="warlock">Колдун</option>
+        </select></div>
+      </div>
+
+      <div class="input-row-3">
+        <div><label>Уровень</label><input id="char-level" type="number" min="1" max="20" value="1" onchange="recalc()"></div>
+        <div><label>КД</label><input id="char-ac" type="number" min="1" max="50" value="10"></div>
+        <div><label>Макс. HP</label><input id="char-hp" type="number" min="1" max="999" value="10" onchange="recalc()"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Характеристики</div>
+        <div class="abilities-grid">
+          <div class="ability-item"><label>СИЛ</label><input id="ab-str" type="number" min="1" max="30" value="10" onchange="recalc()"><div class="ability-mod" id="mod-str">+0</div></div>
+          <div class="ability-item"><label>ЛОВ</label><input id="ab-dex" type="number" min="1" max="30" value="10" onchange="recalc()"><div class="ability-mod" id="mod-dex">+0</div></div>
+          <div class="ability-item"><label>ТЕЛ</label><input id="ab-con" type="number" min="1" max="30" value="10" onchange="recalc()"><div class="ability-mod" id="mod-con">+0</div></div>
+          <div class="ability-item"><label>ИНТ</label><input id="ab-int" type="number" min="1" max="30" value="10" onchange="recalc()"><div class="ability-mod" id="mod-int">+0</div></div>
+          <div class="ability-item"><label>МДР</label><input id="ab-wis" type="number" min="1" max="30" value="10" onchange="recalc()"><div class="ability-mod" id="mod-wis">+0</div></div>
+          <div class="ability-item"><label>ХАР</label><input id="ab-cha" type="number" min="1" max="30" value="10" onchange="recalc()"><div class="ability-mod" id="mod-cha">+0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: IN SESSION ========== -->
+<div id="screen-session" class="hidden">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="session-room-name">Комната</div>
+      <div style="font-size:0.75rem; color:var(--text2)">
+        <span class="status-dot status-connected" id="session-status-dot"></span>
+        <span id="session-status-text">Подключён</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-theme" onclick="toggleTheme()" title="Тема">&#9789;</button>
+      <button class="btn-logout" onclick="leaveRoom()" style="color:var(--err); border-color:rgba(239,68,68,0.3)">Выйти</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3 id="session-char-name">Персонаж</h3>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchSessionTab('stats')">Статы</button>
+        <button class="tab-btn" onclick="switchSessionTab('combat')">Бой</button>
+        <button class="tab-btn" onclick="switchSessionTab('notes')">Заметки</button>
+      </div>
+
+      <!-- Stats Tab -->
+      <div id="tab-stats">
+        <div class="input-row-3">
+          <div><label>Текущие HP</label><input id="s-hp-cur" type="number" min="0" value="10" onchange="notifyMaster()"></div>
+          <div><label>Макс HP</label><input id="s-hp-max" type="number" value="10" readonly style="opacity:0.6"></div>
+          <div><label>Врем. HP</label><input id="s-hp-temp" type="number" min="0" value="0" onchange="notifyMaster()"></div>
+        </div>
+
+        <div class="input-row-3">
+          <div><label>КД</label><input id="s-ac" type="number" value="10" onchange="notifyMaster()"></div>
+          <div><label>Скорость</label><input id="s-speed" type="number" value="30" onchange="notifyMaster()"></div>
+          <div><label>Инициатива</label><input id="s-init" type="number" value="0" onchange="notifyMaster()"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Характеристики</div>
+          <div class="abilities-grid">
+            <div class="ability-item"><label>СИЛ</label><div class="ability-mod" id="s-str">10 (+0)</div></div>
+            <div class="ability-item"><label>ЛОВ</label><div class="ability-mod" id="s-dex">10 (+0)</div></div>
+            <div class="ability-item"><label>ТЕЛ</label><div class="ability-mod" id="s-con">10 (+0)</div></div>
+            <div class="ability-item"><label>ИНТ</label><div class="ability-mod" id="s-int">10 (+0)</div></div>
+            <div class="ability-item"><label>МДР</label><div class="ability-mod" id="s-wis">10 (+0)</div></div>
+            <div class="ability-item"><label>ХАР</label><div class="ability-mod" id="s-cha">10 (+0)</div></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Снаряжение</div>
+          <textarea id="s-equipment" rows="3" placeholder="Список снаряжения..." onchange="notifyMaster()"></textarea>
+        </div>
+      </div>
+
+      <!-- Combat Tab -->
+      <div id="tab-combat" class="hidden">
+        <div class="section">
+          <div class="section-title">Спасброски от смерти</div>
+          <div class="check-row"><span style="min-width:60px">Успехи:</span>
+            <input type="checkbox" id="ds-s1"><input type="checkbox" id="ds-s2"><input type="checkbox" id="ds-s3">
+          </div>
+          <div class="check-row"><span style="min-width:60px">Провалы:</span>
+            <input type="checkbox" id="ds-f1"><input type="checkbox" id="ds-f2"><input type="checkbox" id="ds-f3">
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Атаки</div>
+          <div id="attacks-list"></div>
+          <button class="btn btn-secondary" onclick="addAttack()" style="margin-top:8px; font-size:0.8rem; padding:8px">+ Добавить атаку</button>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Кубики</div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
+            <button class="btn btn-secondary" onclick="rollDice(4)" style="padding:10px; font-size:0.85rem; font-weight:700">d4</button>
+            <button class="btn btn-secondary" onclick="rollDice(6)" style="padding:10px; font-size:0.85rem; font-weight:700">d6</button>
+            <button class="btn btn-secondary" onclick="rollDice(8)" style="padding:10px; font-size:0.85rem; font-weight:700">d8</button>
+            <button class="btn btn-secondary" onclick="rollDice(10)" style="padding:10px; font-size:0.85rem; font-weight:700">d10</button>
+            <button class="btn btn-secondary" onclick="rollDice(12)" style="padding:10px; font-size:0.85rem; font-weight:700">d12</button>
+            <button class="btn btn-secondary" onclick="rollDice(20)" style="padding:10px; font-size:0.85rem; font-weight:700">d20</button>
+            <button class="btn btn-secondary" onclick="rollDice(100)" style="padding:10px; font-size:0.85rem; font-weight:700">d100</button>
+          </div>
+          <div id="dice-result" class="hidden" style="text-align:center; padding:16px; margin-top:8px; border-radius:12px; background:rgba(185,28,28,0.08); border:1px solid var(--border);">
+            <div style="font-size:0.8rem; color:var(--text2)" id="dice-type"></div>
+            <div style="font-size:2.5rem; font-weight:800; color:var(--accent)" id="dice-value"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Tab -->
+      <div id="tab-notes" class="hidden">
+        <label>Черты характера</label>
+        <textarea id="s-traits" rows="2" placeholder="Черты характера..."></textarea>
+        <label>Идеалы</label>
+        <textarea id="s-ideals" rows="2" placeholder="Идеалы..."></textarea>
+        <label>Привязанности</label>
+        <textarea id="s-bonds" rows="2" placeholder="Привязанности..."></textarea>
+        <label>Слабости</label>
+        <textarea id="s-flaws" rows="2" placeholder="Слабости..."></textarea>
+        <label>Заметки</label>
+        <textarea id="s-notes" rows="4" placeholder="Свободные заметки..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const API_URL = 'http://localhost:5001/api';
+
+let token = localStorage.getItem('dnd_token');
+let username = localStorage.getItem('dnd_username');
+let currentRoom = null;
+let playerCharacter = null;
+let availableRooms = [];
+
+// ===== BROADCAST CHANNEL =====
+const channel = new BroadcastChannel('dnd5-session');
+
+// ===== THEME =====
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const icon = theme === 'dark' ? '\u2600' : '\u263D';
+  document.querySelectorAll('.btn-theme').forEach(b => b.textContent = icon);
+  localStorage.setItem('dnd_theme', theme);
+}
+
+function toggleTheme() {
+  const current = localStorage.getItem('dnd_theme') || 'light';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+// ===== INIT =====
+function init() {
+  applyTheme(localStorage.getItem('dnd_theme') || 'light');
+
+  if (token && username) {
+    showScreen('join');
+    document.getElementById('join-username').textContent = username;
+    discoverRooms();
+  } else {
+    showScreen('auth');
+  }
+}
+
+function showScreen(name) {
+  document.getElementById('screen-auth').classList.toggle('hidden', name !== 'auth');
+  document.getElementById('screen-join').classList.toggle('hidden', name !== 'join');
+  document.getElementById('screen-session').classList.toggle('hidden', name !== 'session');
+}
+
+// ===== AUTH =====
+function switchAuthTab(tab) {
+  document.getElementById('auth-login').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('auth-register').classList.toggle('hidden', tab !== 'register');
+  document.querySelectorAll('#screen-auth .tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+  });
+}
+
+async function doLogin() {
+  const login = document.getElementById('login-login').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.add('hidden');
+
+  if (!login || !password) { errEl.textContent = 'Заполните все поля'; errEl.classList.remove('hidden'); return; }
+
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.message || 'Ошибка входа'; errEl.classList.remove('hidden'); return; }
+
+    token = data.token;
+    username = login;
+    localStorage.setItem('dnd_token', token);
+    localStorage.setItem('dnd_username', username);
+    document.getElementById('join-username').textContent = username;
+    showScreen('join');
+    discoverRooms();
+  } catch (e) {
+    errEl.textContent = 'Сервер недоступен'; errEl.classList.remove('hidden');
+  }
+}
+
+async function doRegister() {
+  const login = document.getElementById('reg-login').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  const errEl = document.getElementById('reg-error');
+  const okEl = document.getElementById('reg-success');
+  errEl.classList.add('hidden');
+  okEl.classList.add('hidden');
+
+  if (!login || !password || !confirm) { errEl.textContent = 'Заполните все поля'; errEl.classList.remove('hidden'); return; }
+  if (password !== confirm) { errEl.textContent = 'Пароли не совпадают'; errEl.classList.remove('hidden'); return; }
+
+  try {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login, password, confirmPassword: confirm })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.message || 'Ошибка'; errEl.classList.remove('hidden'); return; }
+
+    okEl.textContent = 'Регистрация успешна! Теперь войдите.';
+    okEl.classList.remove('hidden');
+    setTimeout(() => switchAuthTab('login'), 1500);
+  } catch (e) {
+    errEl.textContent = 'Сервер недоступен'; errEl.classList.remove('hidden');
+  }
+}
+
+function doLogout() {
+  token = null; username = null;
+  localStorage.removeItem('dnd_token');
+  localStorage.removeItem('dnd_username');
+  showScreen('auth');
+}
+
+// ===== ROOM DISCOVERY =====
+function discoverRooms() {
+  availableRooms = [];
+  renderRoomList();
+  // Ask master tabs to broadcast their room info
+  channel.postMessage({ type: 'room:discover' });
+  // Give master tabs 500ms to respond
+  setTimeout(renderRoomList, 600);
+}
+
+function renderRoomList() {
+  const el = document.getElementById('room-list');
+  if (availableRooms.length === 0) {
+    el.innerHTML = '<div class="room-list-empty">Нет активных комнат. Попросите Мастера создать комнату.</div>';
+    return;
+  }
+  el.innerHTML = availableRooms.map(r => `
+    <div class="room-item" onclick="selectRoom('${r.inviteCode}')">
+      <div>
+        <div class="room-item-name">${r.name}</div>
+        <div style="font-size:0.7rem;color:var(--text2);margin-top:2px">${r.accessType === 'Private' ? '&#128274; Приватная' : '&#127760; Публичная'}</div>
+      </div>
+      <div class="room-item-code">${r.inviteCode}</div>
+    </div>
+  `).join('');
+}
+
+function selectRoom(code) {
+  document.getElementById('room-code').value = code;
+}
+
+// ===== CHARACTER HELPERS =====
+function getMod(score) { return Math.floor((score - 10) / 2); }
+function fmtMod(m) { return m >= 0 ? `+${m}` : `${m}`; }
+
+function recalc() {
+  ['str','dex','con','int','wis','cha'].forEach(ab => {
+    const val = parseInt(document.getElementById(`ab-${ab}`).value) || 10;
+    document.getElementById(`mod-${ab}`).textContent = fmtMod(getMod(val));
+  });
+}
+
+// ===== JOIN ROOM =====
+function buildCharacterData() {
+  const str = parseInt(document.getElementById('ab-str').value) || 10;
+  const dex = parseInt(document.getElementById('ab-dex').value) || 10;
+  const con = parseInt(document.getElementById('ab-con').value) || 10;
+  const int_ = parseInt(document.getElementById('ab-int').value) || 10;
+  const wis = parseInt(document.getElementById('ab-wis').value) || 10;
+  const cha = parseInt(document.getElementById('ab-cha').value) || 10;
+  const level = parseInt(document.getElementById('char-level').value) || 1;
+  const ac = parseInt(document.getElementById('char-ac').value) || 10;
+  const hpMax = parseInt(document.getElementById('char-hp').value) || 10;
+
+  return {
+    id: 'player-' + Date.now(),
+    characterName: document.getElementById('char-name').value || 'Приключенец',
+    race: document.getElementById('char-race').value,
+    class: document.getElementById('char-class').value,
+    level, armorClass: ac, hpMax, hpCurrent: hpMax, hpTemp: 0,
+    speed: 30, initiativeBonus: getMod(dex),
+    strength: str, dexterity: dex, constitution: con,
+    intelligence: int_, wisdom: wis, charisma: cha,
+    passivePerception: 10 + getMod(wis),
+    equipment: '', attacks: []
+  };
+}
+
+function joinRoom() {
+  const code = document.getElementById('room-code').value.trim().toUpperCase();
+  const errEl = document.getElementById('join-error');
+  errEl.classList.add('hidden');
+
+  if (!code) { errEl.textContent = 'Введите код комнаты'; errEl.classList.remove('hidden'); return; }
+
+  playerCharacter = buildCharacterData();
+  currentRoom = { code, name: `Комната ${code}` };
+
+  // Populate session screen
+  document.getElementById('session-room-name').textContent = currentRoom.name;
+  document.getElementById('session-char-name').textContent = playerCharacter.characterName;
+  document.getElementById('s-hp-cur').value = playerCharacter.hpCurrent;
+  document.getElementById('s-hp-max').value = playerCharacter.hpMax;
+  document.getElementById('s-hp-temp').value = 0;
+  document.getElementById('s-ac').value = playerCharacter.armorClass;
+  document.getElementById('s-speed').value = playerCharacter.speed;
+  document.getElementById('s-init').value = playerCharacter.initiativeBonus;
+
+  ['str','dex','con','int','wis','cha'].forEach(ab => {
+    const key = ab === 'int' ? 'intelligence' : ab === 'str' ? 'strength' : ab === 'dex' ? 'dexterity' : ab === 'con' ? 'constitution' : ab === 'wis' ? 'wisdom' : 'charisma';
+    const val = playerCharacter[key];
+    document.getElementById(`s-${ab}`).textContent = `${val} (${fmtMod(getMod(val))})`;
+  });
+
+  showScreen('session');
+  notifyJoin();
+}
+
+function leaveRoom() {
+  notifyLeave();
+  currentRoom = null;
+  playerCharacter = null;
+  showScreen('join');
+  discoverRooms();
+}
+
+// ===== SESSION TABS =====
+function switchSessionTab(tab) {
+  ['stats','combat','notes'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+  });
+  document.querySelectorAll('#screen-session .tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (tab === 'stats' && i === 0) || (tab === 'combat' && i === 1) || (tab === 'notes' && i === 2));
+  });
+}
+
+// ===== ATTACKS =====
+let attacks = [];
+function addAttack() {
+  attacks.push({ name: '', bonus: 0, damage: '' });
+  renderAttacks();
+}
+function removeAttack(i) {
+  attacks.splice(i, 1);
+  renderAttacks();
+}
+function renderAttacks() {
+  const el = document.getElementById('attacks-list');
+  el.innerHTML = attacks.map((a, i) => `
+    <div style="display:grid; grid-template-columns:2fr 1fr 2fr auto; gap:4px; margin-bottom:4px; align-items:center;">
+      <input placeholder="Название" value="${a.name}" onchange="attacks[${i}].name=this.value" style="margin:0">
+      <input type="number" value="${a.bonus}" onchange="attacks[${i}].bonus=+this.value" style="margin:0; text-align:center">
+      <input placeholder="Урон" value="${a.damage}" onchange="attacks[${i}].damage=this.value" style="margin:0">
+      <button onclick="removeAttack(${i})" style="background:transparent;border:none;color:var(--err);cursor:pointer;font-size:1.2rem;padding:4px">&times;</button>
+    </div>
+  `).join('');
+}
+
+// ===== DICE =====
+function rollDice(sides) {
+  const result = Math.floor(Math.random() * sides) + 1;
+  document.getElementById('dice-result').classList.remove('hidden');
+  document.getElementById('dice-type').textContent = `d${sides}`;
+  const valEl = document.getElementById('dice-value');
+  valEl.textContent = result;
+  valEl.style.color = (sides === 20 && result === 20) ? 'var(--ok)' : (sides === 20 && result === 1) ? 'var(--err)' : 'var(--accent)';
+}
+
+// ===== CROSS-TAB COMMUNICATION =====
+function getFullPlayerData() {
+  return { ...playerCharacter, roomCode: currentRoom?.code, username };
+}
+
+function notifyJoin() {
+  channel.postMessage({ type: 'player:joined', player: getFullPlayerData() });
+}
+
+function notifyLeave() {
+  if (!playerCharacter) return;
+  channel.postMessage({ type: 'player:left', playerId: playerCharacter.id, roomCode: currentRoom?.code });
+}
+
+function notifyMaster() {
+  if (!playerCharacter) return;
+  playerCharacter.hpCurrent = parseInt(document.getElementById('s-hp-cur').value) || 0;
+  playerCharacter.hpTemp = parseInt(document.getElementById('s-hp-temp').value) || 0;
+  playerCharacter.armorClass = parseInt(document.getElementById('s-ac').value) || 10;
+  playerCharacter.speed = parseInt(document.getElementById('s-speed').value) || 30;
+  playerCharacter.initiativeBonus = parseInt(document.getElementById('s-init').value) || 0;
+  playerCharacter.equipment = document.getElementById('s-equipment').value || '';
+  playerCharacter.traits = document.getElementById('s-traits').value || '';
+  playerCharacter.ideals = document.getElementById('s-ideals').value || '';
+  playerCharacter.bonds = document.getElementById('s-bonds').value || '';
+  playerCharacter.flaws = document.getElementById('s-flaws').value || '';
+  playerCharacter.notes = document.getElementById('s-notes').value || '';
+  channel.postMessage({ type: 'character:updated', player: getFullPlayerData() });
+}
+
+// Listen for master events
+channel.onmessage = (e) => {
+  const msg = e.data;
+  if (msg.type === 'player:kicked' && msg.playerId === playerCharacter?.id) {
+    alert('Вы были исключены из сессии!');
+    leaveRoom();
+  }
+  if (msg.type === 'session:ended') {
+    alert('Сессия завершена! Спасибо за игру!');
+    leaveRoom();
+  }
+  // Master edited our character sheet
+  if (msg.type === 'character:master-updated' && msg.player && playerCharacter && msg.player.id === playerCharacter.id) {
+    playerCharacter = { ...playerCharacter, ...msg.player };
+    // Sync UI
+    document.getElementById('s-hp-cur').value = playerCharacter.hpCurrent ?? 0;
+    document.getElementById('s-hp-max').value = playerCharacter.hpMax ?? 0;
+    document.getElementById('s-hp-temp').value = playerCharacter.hpTemp ?? 0;
+    document.getElementById('s-ac').value = playerCharacter.armorClass ?? 10;
+    document.getElementById('s-speed').value = playerCharacter.speed ?? 30;
+    document.getElementById('s-init').value = playerCharacter.initiativeBonus ?? 0;
+    if (playerCharacter.equipment != null) document.getElementById('s-equipment').value = playerCharacter.equipment;
+    if (playerCharacter.traits != null) document.getElementById('s-traits').value = playerCharacter.traits;
+    if (playerCharacter.ideals != null) document.getElementById('s-ideals').value = playerCharacter.ideals;
+    if (playerCharacter.bonds != null) document.getElementById('s-bonds').value = playerCharacter.bonds;
+    if (playerCharacter.flaws != null) document.getElementById('s-flaws').value = playerCharacter.flaws;
+    if (playerCharacter.notes != null) document.getElementById('s-notes').value = playerCharacter.notes;
+    ['str','dex','con','int','wis','cha'].forEach(ab => {
+      const key = ab === 'int' ? 'intelligence' : ab === 'str' ? 'strength' : ab === 'dex' ? 'dexterity' : ab === 'con' ? 'constitution' : ab === 'wis' ? 'wisdom' : 'charisma';
+      if (playerCharacter[key] != null) {
+        const val = playerCharacter[key];
+        document.getElementById(`s-${ab}`).textContent = `${val} (${fmtMod(getMod(val))})`;
+      }
+    });
+    document.getElementById('session-char-name').textContent = playerCharacter.characterName || 'Персонаж';
+  }
+  // Room discovery response from master
+  if (msg.type === 'room:info' && msg.room) {
+    const exists = availableRooms.find(r => r.id === msg.room.id);
+    if (!exists) {
+      availableRooms.push(msg.room);
+      renderRoomList();
+    }
+  }
+};
+
+// Notify on tab close
+window.addEventListener('beforeunload', () => {
+  if (playerCharacter && currentRoom) notifyLeave();
+});
+
+init();
+</script>
+</body>
+</html>
