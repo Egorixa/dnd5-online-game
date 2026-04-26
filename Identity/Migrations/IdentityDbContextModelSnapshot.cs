@@ -64,6 +64,10 @@ namespace Identity.Migrations
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("Login")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_login_unique");
+
                     b.ToTable("users", "identity");
                 });
 #pragma warning restore 612, 618

@@ -1,17 +1,49 @@
-﻿namespace Identity.Application.DTOs
+namespace Identity.Application.DTOs
 {
-    //  при регистрации
-    public class RegisterUserDto
+    public class RegisterRequest
     {
-        public string Login { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    // при входе
-    public class LoginUserDto
+    public class RegisterResponse
     {
-        public string Login { get; set; } = string.Empty;
+        public Guid UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
+    }
+
+    public class LoginRequest
+    {
+        public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+    }
+
+    public class LoginResponse
+    {
+        public string AccessToken { get; set; } = string.Empty;
+        public string TokenType { get; set; } = "Bearer";
+        public int ExpiresInSeconds { get; set; }
+        public UserStatsDto Stats { get; set; } = new();
+    }
+
+    public class UserStatsDto
+    {
+        public int Wins { get; set; }
+        public int Defeats { get; set; }
+        public int MasterCount { get; set; }
+    }
+
+    public class ProfileResponse
+    {
+        public Guid UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public DateTime RegistrationDate { get; set; }
+        public string Theme { get; set; } = "light";
+        public UserStatsDto Stats { get; set; } = new();
+    }
+
+    public class UpdateThemeRequest
+    {
+        public string Theme { get; set; } = string.Empty;
     }
 }

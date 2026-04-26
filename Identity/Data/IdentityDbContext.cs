@@ -16,9 +16,13 @@ namespace Identity.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.HasDefaultSchema("identity");
 
-            modelBuilder.Entity<User>()
-                .Property(u => u.ThemeDesign)
-                .HasConversion<string>();
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.Property(u => u.ThemeDesign).HasConversion<string>();
+                entity.HasIndex(u => u.Login)
+                    .IsUnique()
+                    .HasDatabaseName("ix_users_login_unique");
+            });
         }
     }
 }
