@@ -12,6 +12,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=dnd_db;Username=postgres;Password=root
+      - Jwt__Issuer=dnd5-list-backend
+      - Jwt__Audience=dnd5-list-clients
+      - Jwt__Key=CHANGE-ME-DEV-ONLY-32-bytes-min-secret-1234567890
+      - Jwt__LifetimeMinutes=1440
     depends_on:
       db:
         condition: service_healthy
