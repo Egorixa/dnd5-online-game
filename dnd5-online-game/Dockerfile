@@ -2,21 +2,25 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Копируем файлы проектов (чтобы восстановить зависимости)
+# Копируем все csproj-файлы (для кэшируемого restore)
 COPY ["DnD_backend/DnD_backend.csproj", "DnD_backend/"]
 COPY ["Identity/Identity.csproj", "Identity/"]
+COPY ["Shared/Shared.csproj", "Shared/"]
+COPY ["Rooms/Rooms.csproj", "Rooms/"]
+COPY ["Characters/Characters.csproj", "Characters/"]
+COPY ["RealTime/RealTime.csproj", "RealTime/"]
 
-# Восстанавливаем пакеты (NuGet restore)
+# NuGet restore
 RUN dotnet restore "DnD_backend/DnD_backend.csproj"
 
 # Копируем весь остальной код
 COPY . .
 
-# Собираем проект
+# Собираем
 WORKDIR "/src/DnD_backend"
 RUN dotnet build "DnD_backend.csproj" -c Release -o /app/build
 
-# Публикуем (готовим файлы для запуска)
+# Публикуем
 FROM build AS publish
 RUN dotnet publish "DnD_backend.csproj" -c Release -o /app/publish /p:UseAppHost=false
 

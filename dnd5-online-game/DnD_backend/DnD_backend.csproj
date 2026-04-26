@@ -18,7 +18,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Shared\Shared.csproj" />
 		<ProjectReference Include="..\Identity\Identity.csproj" />
+		<ProjectReference Include="..\Rooms\Rooms.csproj" />
+		<ProjectReference Include="..\Characters\Characters.csproj" />
+		<ProjectReference Include="..\RealTime\RealTime.csproj" />
 	</ItemGroup>
 
 </Project>
