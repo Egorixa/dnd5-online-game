@@ -9,6 +9,7 @@ material = "1.13.0"
 activity = "1.9.3"
 constraintlayout = "2.2.1"
 navigationFragment = "2.7.6"
+room = "2.6.1"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -21,7 +22,8 @@ activity = { group = "androidx.activity", name = "activity", version.ref = "acti
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "navigationFragment" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-

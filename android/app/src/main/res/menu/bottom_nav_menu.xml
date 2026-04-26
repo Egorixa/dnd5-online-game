@@ -11,6 +11,11 @@
         android:title="Персонажи" />
 
     <item
+        android:id="@+id/nav_dice"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="Кубики" />
+
+    <item
         android:id="@+id/nav_profile"
         android:icon="@android:drawable/ic_menu_manage"
         android:title="Профиль" />
