@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tv_room_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✓ Вход в комнату подтверждён"
+            android:textColor="@color/dnd_red"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tv_sync_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:text="Статус: ● актуально"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_room_character"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textStyle="bold"
+            android:text="Подсказки"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="• Изменения мастера (HP, опыт, состояния) появляются автоматически.\n• При обрыве связи произойдёт переподключение и восстановление данных.\n• Для бросков кубиков перейдите на вкладку «Кубики»."/>
+
+        <Button
+            android:id="@+id/btn_simulate_end"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Симулировать завершение мастером"/>
+
+        <Button
+            android:id="@+id/btn_leave_room"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Выйти из комнаты"
+            android:backgroundTint="@color/dnd_red"/>
+
+    </LinearLayout>
+</ScrollView>
