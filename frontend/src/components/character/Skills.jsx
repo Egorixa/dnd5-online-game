@@ -1,4 +1,3 @@
-// 18 навыков D&D 5e с чекбоксами владения и автобонусом.
 import React from 'react';
 import { SKILLS } from '../../constants/skills';
 import { getSkillBonus, formatModifier } from '../../utils/calculations';

@@ -1,14 +1,13 @@
-// Экран сессии мастера: 3-колоночный layout (игроки + трекер | лист персонажа | кубики + лог).
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Copy, LogOut, Check, Sun, Moon } from 'lucide-react';
 import useRoomStore from '../stores/roomStore';
 import useThemeStore from '../stores/themeStore';
 import useAuthStore from '../stores/authStore';
-import { incrementMasterGames } from '../api/auth';
+import * as roomsApi from '../api/rooms';
+import * as charactersApi from '../api/characters';
 import {
-  connectSession, onSessionEvent, sendSessionAction, disconnectSession,
-  SESSION_EVENTS, SESSION_ACTIONS,
+  connectSession, onSessionEvent, disconnectSession, SESSION_EVENTS,
 } from '../api/signalr';
 import PlayerList from '../components/session/PlayerList';
 import DicePanel from '../components/session/DicePanel';
@@ -18,17 +17,32 @@ import InitiativeTracker from '../components/session/InitiativeTracker';
 import EndSessionModal from '../components/session/EndSessionModal';
 import CharacterViewer from '../components/session/CharacterViewer';
 
+const toUiPlayer = (p, characters = {}) => ({
+  id: p.participantId,
+  participantId: p.participantId,
+  userId: p.userId,
+  username: p.username || (p.userId ? `Игрок ${String(p.userId).slice(0, 6)}` : 'Игрок'),
+  role: p.role,
+  characterName: characters[p.userId]?.name || null,
+  ...characters[p.userId],
+});
+
 const SessionPage = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
+
   const {
-    currentRoom, players, selectedPlayerId, eventLog,
+    currentRoom, participants, selectedParticipantId, eventLog,
     loading, error,
-    fetchRoom, selectPlayer, addEvent, addPlayer, removePlayer, updatePlayer, leaveRoom,
+    fetchRoomState, selectParticipant, addEvent,
+    addParticipant, removeParticipant,
+    kickParticipant, finishRoom,
   } = useRoomStore();
 
-  const channelRef = useRef(null);
   const signalrRef = useRef(null);
+  const [characters, setCharacters] = useState({});
+  const [showEndModal, setShowEndModal] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const { theme, toggleTheme } = useThemeStore();
   const { user, updateUser } = useAuthStore();
@@ -70,62 +84,19 @@ const SessionPage = () => {
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   };
-  const [showEndModal, setShowEndModal] = useState(false);
-  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
-    fetchRoom(roomId);
-    addEvent({ type: 'system', text: 'Сессия создана. Ожидание игроков...' });
-  }, [roomId]);
+    fetchRoomState(roomId);
+    addEvent({ type: 'system', text: 'Сессия открыта. Ожидание игроков…' });
 
-  useEffect(() => {
-    const channel = new BroadcastChannel('dnd5-session');
-    channelRef.current = channel;
-
-    channel.onmessage = (event) => {
-      const msg = event.data;
-
-      switch (msg.type) {
-        case 'player:joined':
-          addPlayer(msg.player);
-          addEvent({ type: 'join', text: `${msg.player.characterName || msg.player.username} присоединился к сессии` });
-          break;
-        case 'player:left':
-          const leavingPlayer = useRoomStore.getState().players.find((p) => p.id === msg.playerId);
-          removePlayer(msg.playerId);
-          addEvent({ type: 'leave', text: `${leavingPlayer?.characterName || 'Игрок'} покинул сессию` });
-          break;
-        case 'character:updated':
-          updatePlayer(msg.player.id, msg.player);
-          addEvent({ type: 'system', text: `${msg.player.characterName || 'Игрок'} обновил лист персонажа` });
-          break;
-        case 'room:discover':
-          const room = useRoomStore.getState().currentRoom;
-          if (room && room.accessType === 'Public') {
-            channel.postMessage({
-              type: 'room:info',
-              room: { id: room.id, name: room.name, inviteCode: room.inviteCode, accessType: room.accessType },
-            });
-          }
-          break;
-        default:
-          break;
-      }
-    };
-
-    const room = useRoomStore.getState().currentRoom;
-    if (room && room.accessType === 'Public') {
-      channel.postMessage({
-        type: 'room:info',
-        room: { id: room.id, name: room.name, inviteCode: room.inviteCode, accessType: room.accessType },
+    charactersApi.listRoomCharacters(roomId).then(({ data }) => {
+      const map = {};
+      (data.characters || []).forEach((c) => {
+        if (c.ownerUserId) map[c.ownerUserId] = c;
       });
-    }
-
-    return () => {
-      channel.close();
-      channelRef.current = null;
-    };
-  }, []);
+      setCharacters(map);
+    }).catch(() => {});
+  }, [roomId]);
 
   useEffect(() => {
     let unsubs = [];
@@ -136,29 +107,33 @@ const SessionPage = () => {
       signalrRef.current = conn;
 
       unsubs.push(
-        onSessionEvent(conn, SESSION_EVENTS.PLAYER_JOINED, (player) => {
-          addPlayer(player);
-          addEvent({ type: 'join', text: `${player.characterName || player.username} присоединился к сессии` });
+        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, (p) => {
+          addParticipant(p);
+          addEvent({ type: 'join', text: `Игрок ${String(p.userId).slice(0, 6)} присоединился` });
         }),
-        onSessionEvent(conn, SESSION_EVENTS.PLAYER_LEFT, ({ playerId }) => {
-          const p = useRoomStore.getState().players.find((pl) => pl.id === playerId);
-          removePlayer(playerId);
-          addEvent({ type: 'leave', text: `${p?.characterName || 'Игрок'} покинул сессию` });
-        }),
-        onSessionEvent(conn, SESSION_EVENTS.PLAYER_KICKED, ({ playerId }) => {
-          removePlayer(playerId);
-          addEvent({ type: 'leave', text: 'Игрок исключён из сессии' });
+        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_LEFT, ({ participantId }) => {
+          removeParticipant(participantId);
+          addEvent({ type: 'leave', text: 'Игрок покинул сессию' });
         }),
         onSessionEvent(conn, SESSION_EVENTS.CHARACTER_UPDATED, (data) => {
-          updatePlayer(data.id, data);
-          addEvent({ type: 'system', text: `${data.characterName || 'Игрок'} обновил лист персонажа` });
+          if (data?.ownerUserId) {
+            setCharacters((prev) => ({ ...prev, [data.ownerUserId]: data }));
+          }
+          addEvent({ type: 'system', text: 'Лист персонажа обновлён' });
         }),
-        onSessionEvent(conn, SESSION_EVENTS.DICE_ROLLED, ({ username, diceType, result, isPublic }) => {
-          addEvent({ type: 'dice', text: `${username} бросил ${diceType}: ${result}${isPublic ? '' : ' (скрытый)'}` });
+        onSessionEvent(conn, SESSION_EVENTS.DICE_ROLLED, (roll) => {
+          const total = roll.total ?? roll.result;
+          const isHidden = roll.mode === 'HIDDEN';
+          addEvent({
+            type: 'dice',
+            text: `Бросок ${roll.dice}: ${total}${isHidden ? ' (скрытый)' : ''}`,
+          });
         }),
-        onSessionEvent(conn, SESSION_EVENTS.SESSION_ENDED, () => {
-          addEvent({ type: 'system', text: 'Сессия завершена мастером' });
-          setTimeout(() => { leaveRoom(); navigate('/'); }, 1500);
+        onSessionEvent(conn, SESSION_EVENTS.ROOM_UPDATED, (state) => {
+          if (state?.status === 'FINISHED') {
+            addEvent({ type: 'system', text: 'Сессия завершена мастером' });
+            setTimeout(() => navigate('/'), 1500);
+          }
         }),
       );
     });
@@ -174,76 +149,81 @@ const SessionPage = () => {
   }, [roomId]);
 
   const handleCopyCode = () => {
-    const code = currentRoom?.inviteCode || roomId;
+    const code = currentRoom?.roomCode || roomId;
     navigator.clipboard.writeText(code).then(() => {
       setCodeCopied(true);
       setTimeout(() => setCodeCopied(false), 2000);
     });
   };
 
-  const handleDiceRoll = ({ diceType, result, isPublic }) => {
-    addEvent({
-      type: 'dice',
-      text: `Мастер бросил ${diceType}: ${result}${isPublic ? '' : ' (скрытый)'}`,
-    });
-    sendSessionAction(signalrRef.current, SESSION_ACTIONS.ROLL_DICE, roomId, diceType, result, isPublic);
+  const handleDiceRoll = async ({ diceType, isPublic }) => {
+    try {
+      const { data } = await roomsApi.rollDice(roomId, {
+        dice: diceType,
+        mode: isPublic ? 'PUBLIC' : 'HIDDEN',
+      });
+      addEvent({
+        type: 'dice',
+        text: `Мастер бросил ${data.dice}: ${data.total ?? data.result}${isPublic ? '' : ' (скрытый)'}`,
+      });
+    } catch (err) {
+      addEvent({ type: 'system', text: `Ошибка броска: ${err.message}` });
+    }
   };
 
   const handleMagicBall = (answer) => {
     addEvent({ type: 'system', text: `Магический шар: "${answer}"` });
   };
 
-  const handleKickPlayer = (playerId) => {
-    const player = players.find((p) => p.id === playerId);
-    removePlayer(playerId);
-    addEvent({ type: 'leave', text: `${player?.characterName || 'Игрок'} исключён из сессии` });
-    channelRef.current?.postMessage({ type: 'player:kicked', playerId });
-    sendSessionAction(signalrRef.current, SESSION_ACTIONS.KICK_PLAYER, roomId, playerId);
+  const handleKick = (participantId) => {
+    const p = participants.find((x) => x.participantId === participantId);
+    kickParticipant(participantId, p?.userId);
+    addEvent({ type: 'leave', text: 'Игрок исключён' });
   };
 
-  const handleCharacterUpdate = (playerId, data) => {
-    updatePlayer(playerId, data);
-    channelRef.current?.postMessage({ type: 'character:updated', player: { ...data, id: playerId } });
-    sendSessionAction(signalrRef.current, SESSION_ACTIONS.UPDATE_CHARACTER, roomId, { ...data, id: playerId });
+  const handleCharacterUpdate = async (participantId, data) => {
+    const p = participants.find((x) => x.participantId === participantId);
+    const characterId = characters[p?.userId]?.characterId;
+    try {
+      if (characterId) {
+        const { data: updated } = await charactersApi.updateRoomCharacter(roomId, characterId, data);
+        setCharacters((prev) => ({ ...prev, [p.userId]: updated }));
+      }
+    } catch (err) {
+      console.warn('[session] character update failed:', err.message);
+    }
   };
 
   const handleAttackRoll = ({ player, attack, d20, bonus, attackTotal, damage }) => {
-    const attackName = attack.name || 'атака';
     const bonusStr = bonus >= 0 ? `+${bonus}` : `${bonus}`;
-    let text = `${player.characterName || 'Игрок'} — ${attackName}: d20(${d20})${bonusStr} = ${attackTotal}`;
+    let text = `${player.characterName || 'Игрок'} — ${attack.name || 'атака'}: d20(${d20})${bonusStr} = ${attackTotal}`;
     if (d20 === 20) text += ' • КРИТ!';
     if (damage) {
       const modStr = damage.mod ? (damage.mod > 0 ? `+${damage.mod}` : `${damage.mod}`) : '';
       text += ` • урон ${damage.formula}: [${damage.rolls.join(', ')}]${modStr} = ${damage.total}`;
-    } else if (attack.damage) {
-      text += ` • урон: ${attack.damage}`;
     }
     addEvent({ type: 'dice', text });
   };
 
-  const handleEndSession = async ({ winners, losers }) => {
+  const handleEndSession = async ({ winners = [], losers = [] }) => {
     setShowEndModal(false);
     addEvent({ type: 'system', text: 'Сессия завершена!' });
-    channelRef.current?.postMessage({ type: 'session:ended', winners, losers });
-    sendSessionAction(signalrRef.current, SESSION_ACTIONS.END_SESSION, roomId, winners, losers);
-
-    try {
-      const { data } = await incrementMasterGames();
-      updateUser(data);
-    } catch {
-      if (user) {
-        updateUser({ ...user, countMasterTime: (user.countMasterTime || 0) + 1 });
-      }
+    await finishRoom({ winners, losers });
+    if (user) {
+      updateUser({ ...user, countMasterTime: (user.countMasterTime || 0) + 1 });
     }
-
-    setTimeout(() => {
-      leaveRoom();
-      navigate('/');
-    }, 1500);
+    setTimeout(() => navigate('/'), 1200);
   };
 
+  const players = useMemo(
+    () => (participants || [])
+      .filter((p) => String(p.role).toLowerCase() !== 'master')
+      .map((p) => toUiPlayer(p, characters)),
+    [participants, characters],
+  );
+
   if (loading) {
-    return <div className="session-loading">Загрузка комнаты...</div>;
+    return <div className="session-loading">Загрузка комнаты…</div>;
   }
 
   if (error) {
@@ -255,17 +235,19 @@ const SessionPage = () => {
     );
   }
 
-  const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
+  const selectedPlayer = players.find((p) => p.id === selectedParticipantId);
 
   return (
     <div className="session-page">
-      {/* Top bar */}
       <div className="session-topbar">
         <div className="session-topbar-left">
-          <h2 className="session-room-name">{currentRoom?.name || 'Комната'}</h2>
+          <h2 className="session-room-name">
+            {currentRoom?.name
+              || (currentRoom?.accessMode === 'PUBLIC' ? 'Публичная комната' : 'Приватная комната')}
+          </h2>
           <div className="session-code">
             <span>Код:</span>
-            <code>{currentRoom?.inviteCode || '—'}</code>
+            <code>{currentRoom?.roomCode || '—'}</code>
             <button className="session-copy-btn" onClick={handleCopyCode}>
               {codeCopied ? <Check size={14} /> : <Copy size={14} />}
             </button>
@@ -281,39 +263,32 @@ const SessionPage = () => {
         </div>
       </div>
 
-      {/* 3-column layout — columns are resizable */}
       <div
         className="session-grid"
         style={{ gridTemplateColumns: `${leftW}px 6px 1fr 6px ${rightW}px` }}
       >
-        {/* Left: scrollable PlayerList + pinned InitiativeTracker */}
         <div className="session-col-left">
           <div className="session-left-players">
             <PlayerList
               players={players}
-              selectedPlayerId={selectedPlayerId}
-              onSelect={selectPlayer}
-              onKick={handleKickPlayer}
+              selectedPlayerId={selectedParticipantId}
+              onSelect={selectParticipant}
+              onKick={handleKick}
             />
           </div>
           <div className="session-left-initiative">
             <InitiativeTracker
               players={players}
-              selectedPlayerId={selectedPlayerId}
-              onSelectPlayer={selectPlayer}
+              selectedPlayerId={selectedParticipantId}
+              onSelectPlayer={selectParticipant}
               onUpdatePlayer={handleCharacterUpdate}
               onLogEvent={addEvent}
             />
           </div>
         </div>
 
-        <div
-          className="session-resizer"
-          onMouseDown={startResize('left')}
-          title="Потяните, чтобы изменить ширину"
-        />
+        <div className="session-resizer" onMouseDown={startResize('left')} />
 
-        {/* Center: Character Viewer */}
         <div className="session-col-center">
           {selectedPlayer ? (
             <CharacterViewer
@@ -328,13 +303,8 @@ const SessionPage = () => {
           )}
         </div>
 
-        <div
-          className="session-resizer"
-          onMouseDown={startResize('right')}
-          title="Потяните, чтобы изменить ширину"
-        />
+        <div className="session-resizer" onMouseDown={startResize('right')} />
 
-        {/* Right: Tools */}
         <div className="session-col-right">
           <DicePanel onRoll={handleDiceRoll} />
           <MagicBall onResult={handleMagicBall} />

@@ -1,4 +1,3 @@
-// Список предысторий D&D 5e.
 export const BACKGROUNDS = [
   { value: 'acolyte', label: 'Аколит', labelEn: 'Acolyte', skills: ['insight', 'religion'] },
   { value: 'charlatan', label: 'Шарлатан', labelEn: 'Charlatan', skills: ['deception', 'sleight-of-hand'] },

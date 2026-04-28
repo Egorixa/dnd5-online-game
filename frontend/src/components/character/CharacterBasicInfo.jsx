@@ -1,4 +1,3 @@
-// Основные сведения: имя, раса, класс, уровень, предыстория, мировоззрение, XP.
 import React from 'react';
 import { RACES } from '../../constants/races';
 import { CLASSES } from '../../constants/classes';

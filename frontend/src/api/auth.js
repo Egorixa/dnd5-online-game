@@ -1,17 +1,16 @@
-// API-запросы авторизации: login, register, profile, theme, master-games.
 import client from './client';
 
-export const loginRequest = (login, password) =>
-  client.post('/auth/login', { login, password });
+export const loginRequest = (username, password) =>
+  client.post('/auth/login', { username, password });
 
-export const registerRequest = (login, password, confirmPassword) =>
-  client.post('/auth/register', { login, password, confirmPassword });
+export const registerRequest = (username, password, confirmPassword) =>
+  client.post('/auth/register', { username, password, confirmPassword });
+
+export const logoutRequest = () =>
+  client.post('/auth/logout');
 
 export const getProfile = () =>
   client.get('/auth/profile');
-
-export const incrementMasterGames = () =>
-  client.post('/auth/master-games/increment');
 
 export const updateTheme = (theme) =>
   client.put('/auth/theme', { theme });

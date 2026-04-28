@@ -1,4 +1,3 @@
-// Утилиты валидации полей листа персонажа.
 import * as yup from 'yup';
 
 export const characterBasicSchema = yup.object({

@@ -1,4 +1,3 @@
-// Секция 6 характеристик с модификаторами и бонусом мастерства.
 import React from 'react';
 import { ABILITIES } from '../../constants/skills';
 import { getModifier, formatModifier } from '../../utils/calculations';

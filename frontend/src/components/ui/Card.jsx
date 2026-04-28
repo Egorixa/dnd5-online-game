@@ -1,4 +1,3 @@
-// Glass-morphism карточка.
 import React from 'react';
 
 const Card = ({ children, className = '', onClick }) => {

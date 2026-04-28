@@ -1,4 +1,3 @@
-// Главная страница: создание комнаты (название + тип доступа).
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useRoomStore from '../stores/roomStore';
@@ -6,70 +5,105 @@ import useRoomStore from '../stores/roomStore';
 const HomePage = () => {
   const navigate = useNavigate();
   const createRoom = useRoomStore((s) => s.createRoom);
-  const [access, setAccess] = useState('Private');
-  const [roomName, setRoomName] = useState('');
+  const joinRoomByCode = useRoomStore((s) => s.joinRoomByCode);
+  const [name, setName] = useState('');
+  const [accessMode, setAccessMode] = useState('PRIVATE');
+  const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const handleCreateRoom = async () => {
-    if (!roomName.trim()) {
+    if (!name.trim()) {
       setError('Введите название комнаты');
       return;
     }
     setError('');
-    setCreating(true);
+    setBusy(true);
     try {
-      const room = await createRoom(roomName.trim(), access);
-      navigate(`/session/${room.id}`);
+      const room = await createRoom(accessMode);
+      try {
+        const map = JSON.parse(localStorage.getItem('dnd_room_names') || '{}');
+        map[room.roomId] = name.trim();
+        localStorage.setItem('dnd_room_names', JSON.stringify(map));
+      } catch { /* ignore */ }
+      navigate(`/session/${room.roomId}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Ошибка создания комнаты');
     } finally {
-      setCreating(false);
+      setBusy(false);
+    }
+  };
+
+  const handleJoinByCode = async () => {
+    if (!joinCode.trim()) {
+      setError('Введите код комнаты');
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      const room = await joinRoomByCode(joinCode.trim().toUpperCase());
+      navigate(`/session/${room.roomId}`);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Не удалось присоединиться');
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
     <div className="hero-section">
-      <h1 className="hero-title">Добро пожаловать в сервис для игры в DnD5!</h1>
+      <h1 className="hero-title">Добро пожаловать в DnD5 Master</h1>
       <p className="hero-subtitle">
-        Создайте комнату и объедините друзей и героев для проведения великой игры.
+        Создайте комнату и соберите команду для великой игры.
       </p>
 
       <div className="config-card">
         <div className="input-group">
           <label className="input-label">Название комнаты</label>
           <input
-            className={`form-input ${error ? 'input-error' : ''}`}
+            className={`form-input ${error && !name.trim() ? 'input-error' : ''}`}
             type="text"
             placeholder="Введите название комнаты"
-            value={roomName}
-            onChange={(e) => {
-              setRoomName(e.target.value);
-              if (error) setError('');
-            }}
+            value={name}
+            maxLength={60}
+            onChange={(e) => { setName(e.target.value); if (error) setError(''); }}
           />
-          {error && <span className="error-text">{error}</span>}
         </div>
 
         <div className="input-group">
           <label className="input-label">Доступ к комнате</label>
           <select
             className="form-select"
-            value={access}
-            onChange={(e) => setAccess(e.target.value)}
+            value={accessMode}
+            onChange={(e) => setAccessMode(e.target.value)}
           >
-            <option value="Public">Публичная (видна в поиске)</option>
-            <option value="Private">Приватная (только по коду)</option>
+            <option value="PUBLIC">Публичная (видна в поиске)</option>
+            <option value="PRIVATE">Приватная (только по коду)</option>
           </select>
         </div>
 
-        <button className="btn-main" onClick={handleCreateRoom} disabled={creating}>
-          {creating ? 'Создание...' : 'Создать новую комнату'}
+        {error && <span className="error-text">{error}</span>}
+
+        <button className="btn-main" onClick={handleCreateRoom} disabled={busy}>
+          {busy ? 'Подождите…' : 'Создать новую комнату'}
         </button>
 
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '1.5rem' }}>
-          После нажатия кнопки вы получите уникальный код для приглашения игроков.
-        </p>
+        <div className="config-divider">или</div>
+
+        <div className="input-group">
+          <label className="input-label">Присоединиться по коду</label>
+          <input
+            className="form-input"
+            type="text"
+            placeholder="ABC123"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value)}
+          />
+        </div>
+        <button className="btn-secondary" onClick={handleJoinByCode} disabled={busy}>
+          Войти в комнату
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// Модальное окно с glass-morphism стилем.
 import React from 'react';
 import { X } from 'lucide-react';
 

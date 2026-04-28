@@ -1,4 +1,3 @@
-// Текстовое поле с лейблом, ошибкой и toggle показа пароля.
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 

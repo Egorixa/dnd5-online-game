@@ -1,4 +1,3 @@
-// Журнал событий сессии с таймстампами (броски, подключения, системные).
 import React, { useRef, useEffect } from 'react';
 import { Dice1, UserPlus, UserMinus, MessageCircle } from 'lucide-react';
 

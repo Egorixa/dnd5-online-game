@@ -1,4 +1,3 @@
-// Боевые параметры: КД, HP (с cap), скорость, кость хитов, спасброски от смерти.
 import React from 'react';
 import { getHitDie } from '../../utils/calculations';
 

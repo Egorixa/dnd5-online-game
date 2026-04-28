@@ -1,4 +1,3 @@
-// Секция внешности и предыстории персонажа.
 import React from 'react';
 
 const Appearance = ({ data, onChange }) => {

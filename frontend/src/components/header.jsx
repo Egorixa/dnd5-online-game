@@ -1,7 +1,6 @@
-// Верхнее меню навигации: логотип, тема, дропдаун профиля/выхода.
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Shield, User, LogOut, Settings, Sun, Moon, Home } from 'lucide-react';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { Shield, User, LogOut, Settings, Sun, Moon, Home, PlusCircle, ListChecks, Users } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 
 const Header = ({ theme, toggleTheme }) => {
@@ -30,6 +29,21 @@ const Header = ({ theme, toggleTheme }) => {
           <span className="logo-text">DnD5 <span>Master</span></span>
         </div>
 
+        <nav className="header-nav">
+          <NavLink to="/" end className={({ isActive }) => `header-nav-link ${isActive ? 'active' : ''}`}>
+            <PlusCircle size={16} />
+            <span>Создать комнату</span>
+          </NavLink>
+          <NavLink to="/rooms" className={({ isActive }) => `header-nav-link ${isActive ? 'active' : ''}`}>
+            <ListChecks size={16} />
+            <span>Список комнат</span>
+          </NavLink>
+          <NavLink to="/characters" className={({ isActive }) => `header-nav-link ${isActive ? 'active' : ''}`}>
+            <Users size={16} />
+            <span>Персонажи</span>
+          </NavLink>
+        </nav>
+
         <div className="header-actions">
           <button className="icon-btn theme-toggle" onClick={toggleTheme}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
@@ -48,6 +62,10 @@ const Header = ({ theme, toggleTheme }) => {
                 <div className="dropdown-item" onClick={() => { navigate('/'); setIsMenuOpen(false); }}>
                   <Home size={16} />
                   <span>Главная</span>
+                </div>
+                <div className="dropdown-item" onClick={() => { navigate('/rooms'); setIsMenuOpen(false); }}>
+                  <ListChecks size={16} />
+                  <span>Список комнат</span>
                 </div>
                 <div className="dropdown-item" onClick={handleProfile}>
                   <Settings size={16} />

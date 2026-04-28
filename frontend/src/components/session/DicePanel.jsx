@@ -1,4 +1,3 @@
-// Панель кубиков (d4-d100) с публичным/скрытым режимом броска.
 import React, { useState } from 'react';
 import { Dice1, EyeOff, Eye } from 'lucide-react';
 

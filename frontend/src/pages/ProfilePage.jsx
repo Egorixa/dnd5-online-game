@@ -1,4 +1,3 @@
-// Профиль пользователя: статистика, переключатель темы, инструкция по созданию комнаты.
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Calendar, Trophy, Swords, Crown, LogOut, Sun, Moon, Info } from 'lucide-react';

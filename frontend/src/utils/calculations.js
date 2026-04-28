@@ -1,4 +1,3 @@
-// Формулы D&D 5e: модификаторы, бонус мастерства, спасброски, навыки, магия, кость хитов.
 import { getProficiencyBonus } from '../constants/proficiencyBonus';
 import { getClassByValue } from '../constants/classes';
 

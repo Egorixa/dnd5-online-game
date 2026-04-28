@@ -1,4 +1,3 @@
-// Zustand-стор темы: light/dark с persist в localStorage.
 import { create } from 'zustand';
 import { updateTheme as updateThemeRequest } from '../api/auth';
 

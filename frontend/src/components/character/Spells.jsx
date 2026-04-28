@@ -1,4 +1,3 @@
-// Заклинания: ячейки (1-9 уровень), DC, бонус атаки, список до 100 заклинаний.
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { canCastSpells, getSpellAbility, getSpellSaveDC, getSpellAttackBonus, formatModifier } from '../../utils/calculations';

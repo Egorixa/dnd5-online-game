@@ -1,4 +1,3 @@
-// Полный лист персонажа в сессии мастера (ТЗ 4.1.2). Реиспользует секции из components/character/*.
 import React, { useMemo } from 'react';
 import { Plus, Trash2, Dice5 } from 'lucide-react';
 import CharacterBasicInfo from '../character/CharacterBasicInfo';

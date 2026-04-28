@@ -1,4 +1,3 @@
-// Стилизованный селектор.
 import React from 'react';
 
 const Select = ({ label, error, options, register, name, placeholder, ...props }) => {
