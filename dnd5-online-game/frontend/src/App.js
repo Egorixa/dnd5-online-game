@@ -1,4 +1,3 @@
-// Корневой компонент: роутинг, тема, layout с Header и ProtectedRoute.
 import React from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import './App.css';
@@ -11,6 +10,8 @@ import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import SessionPage from './pages/SessionPage';
 import RegisterPage from './pages/RegisterPage';
+import RoomsListPage from './pages/RoomsListPage';
+import CharactersListPage from './pages/CharactersListPage';
 
 const LayoutWithHeader = () => {
   const { theme, toggleTheme } = useThemeStore();
@@ -40,6 +41,8 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<LayoutWithHeader />}>
               <Route path="/" element={<HomePage />} />
+              <Route path="/rooms" element={<RoomsListPage />} />
+              <Route path="/characters" element={<CharactersListPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route path="/session/:roomId" element={

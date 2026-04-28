@@ -1,4 +1,3 @@
-// 18 навыков и 6 спасбросков D&D 5e с привязкой к характеристикам.
 export const SKILLS = [
   { value: 'acrobatics', label: 'Акробатика', labelEn: 'Acrobatics', ability: 'dexterity' },
   { value: 'animal-handling', label: 'Уход за животными', labelEn: 'Animal Handling', ability: 'wisdom' },

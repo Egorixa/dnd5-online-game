@@ -1,4 +1,3 @@
-// Снаряжение, прочие владения/языки и валюта (5 типов монет).
 import React from 'react';
 
 const CURRENCIES = [

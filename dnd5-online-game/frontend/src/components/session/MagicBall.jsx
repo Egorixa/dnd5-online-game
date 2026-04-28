@@ -1,4 +1,3 @@
-// Магический шар: случайный ответ Да/Нет/Возможно.
 import React, { useState } from 'react';
 
 const ANSWERS = [

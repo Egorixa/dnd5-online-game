@@ -1,30 +1,40 @@
-/* Глобальные стили приложения: переменные, layout, компоненты. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lora:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap');
 
 :root {
     --header-height: 75px;
-    --glass-bg: rgba(255, 255, 255, 0.9);
-    --glass-border: rgba(185, 28, 28, 0.15);
-    --accent-red: #b91c1c;
-    --accent-hover: #991b1b;
-    --bg-main: #fcfaf7;
-    --text-main: #1f2937;
-    --text-secondary: #6b7280;
-    --shadow-lux: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-    --input-bg: rgba(255, 255, 255, 0.6);
-    --input-border: rgba(185, 28, 28, 0.2);
-    --error-color: #dc2626;
-    --success-color: #16a34a;
+    --glass-bg: rgba(255, 252, 246, 0.92);
+    --glass-border: rgba(160, 24, 24, 0.18);
+    --accent-red: #a01818;
+    --accent-hover: #7c1414;
+    --accent-soft: rgba(160, 24, 24, 0.08);
+    --bg-main: #faf5ec;
+    --bg-elev: #ffffff;
+    --text-main: #1c2330;
+    --text-secondary: #5d6776;
+    --shadow-lux: 0 14px 36px -18px rgba(28, 35, 48, 0.22);
+    --input-bg: rgba(255, 253, 246, 0.85);
+    --input-border: rgba(160, 24, 24, 0.22);
+    --input-border-strong: rgba(160, 24, 24, 0.45);
+    --error-color: #c52727;
+    --success-color: #168648;
 }
 
 [data-theme='dark'] {
-    --glass-bg: rgba(30, 41, 59, 0.95);
-    --glass-border: rgba(239, 68, 68, 0.3);
-    --bg-main: #0f172a;
-    --text-main: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --input-bg: rgba(30, 41, 59, 0.8);
-    --input-border: rgba(239, 68, 68, 0.25);
+    --glass-bg: rgba(20, 28, 44, 0.95);
+    --glass-border: rgba(220, 90, 90, 0.32);
+    --accent-red: #df4646;
+    --accent-hover: #b93535;
+    --accent-soft: rgba(223, 70, 70, 0.14);
+    --bg-main: #0a1424;
+    --bg-elev: #122036;
+    --text-main: #f1f5fa;
+    --text-secondary: #b4bdcc;
+    --shadow-lux: 0 14px 36px -18px rgba(0, 0, 0, 0.7);
+    --input-bg: rgba(18, 32, 54, 0.9);
+    --input-border: rgba(223, 70, 70, 0.28);
+    --input-border-strong: rgba(223, 70, 70, 0.55);
+    --error-color: #ef6b6b;
+    --success-color: #4cc28b;
 }
 
 * {
@@ -36,11 +46,17 @@
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-main);
+    background-image:
+        radial-gradient(ellipse at 12% 10%, rgba(160, 24, 24, 0.06), transparent 55%),
+        radial-gradient(ellipse at 88% 92%, rgba(28, 35, 48, 0.05), transparent 55%);
+    background-attachment: fixed;
     color: var(--text-main);
     min-height: 100vh;
-    transition:
-        background 0.3s ease,
-        color 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6, p, span, label, li, strong, em, button, input, select, textarea {
+    color: inherit;
 }
 
 .app-header {
@@ -89,6 +105,205 @@ body {
     display: flex;
     align-items: center;
     gap: 1.2rem;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    margin-right: 1.5rem;
+}
+.header-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: 0.18s ease;
+}
+.header-nav-link:hover {
+    color: var(--text-main);
+    background: var(--accent-soft);
+}
+.header-nav-link.active {
+    color: var(--accent-red);
+    background: var(--accent-soft);
+    border-color: var(--accent-red);
+}
+
+.rooms-list-page {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.rooms-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+.rooms-list-subtitle {
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+.rooms-refresh-btn {
+    width: auto !important;
+    padding: 12px 20px !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+.rooms-list-error {
+    margin-bottom: 1rem;
+}
+.rooms-list-empty {
+    background: var(--glass-bg);
+    border: 1px dashed var(--glass-border);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.rooms-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.room-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.25rem 1.25rem 1.5rem;
+    box-shadow: var(--shadow-lux);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.room-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--input-border-strong);
+}
+.room-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+.room-card-code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-main);
+    background: var(--accent-soft);
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+.room-card-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 8px;
+    border-radius: 999px;
+}
+.room-card-status-active {
+    color: var(--success-color);
+    background: rgba(22, 134, 72, 0.12);
+}
+.room-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+}
+.room-card-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.room-card-join {
+    width: 100% !important;
+    padding: 12px !important;
+    margin-top: auto !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.95rem !important;
+}
+
+.character-card-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.character-card-name {
+    font-family: 'Lora', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.character-card-delete {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    padding: 6px;
+    cursor: pointer;
+    transition: 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.character-card-delete:hover {
+    color: var(--error-color);
+    border-color: var(--error-color);
+    background: rgba(197, 39, 39, 0.08);
+}
+
+.character-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+.modal-actions > button {
+    width: auto !important;
+    min-width: 110px;
+    padding: 10px 18px !important;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .icon-btn {
@@ -317,34 +532,98 @@ body {
 
 .form-select {
     width: 100%;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 2px solid var(--input-border);
-    background: var(--input-bg);
+    padding: 13px 44px 13px 18px;
+    border-radius: 10px;
+    border: 1.5px solid var(--input-border);
+    background-color: #ffffff;
     color: var(--text-main);
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-family: 'Inter', sans-serif;
+    font-weight: 500;
     cursor: pointer;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a01818' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 16px center;
+    background-position: right 14px center;
+    background-size: 14px 14px;
+}
+.form-select:hover {
+    border-color: var(--input-border-strong);
 }
 .form-select:focus {
     border-color: var(--accent-red);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.form-select option {
+    background: var(--bg-elev);
+    color: var(--text-main);
+    padding: 8px;
 }
 
-select {
+[data-theme='dark'] .form-select {
+    background-color: #16223a;
+    border-color: rgba(241, 245, 250, 0.14);
+    color: #f1f5fa;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364718a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    box-shadow: none;
+}
+[data-theme='dark'] .form-select:hover {
+    border-color: rgba(241, 245, 250, 0.28);
+}
+[data-theme='dark'] .form-select:focus {
+    border-color: rgba(223, 70, 70, 0.55);
+    box-shadow: 0 0 0 3px rgba(223, 70, 70, 0.14);
+}
+[data-theme='dark'] .form-select option {
+    background: #16223a;
+    color: #f1f5fa;
+}
+
+select:not(.form-select) {
     width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: 2px solid var(--glass-border);
-    background: transparent;
+    padding: 10px 36px 10px 14px;
+    border-radius: 8px;
+    border: 1.5px solid var(--input-border);
+    background-color: #ffffff;
     color: var(--text-main);
-    font-size: 1rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a01818' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 12px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+select:not(.form-select):hover {
+    border-color: var(--input-border-strong);
+}
+select:not(.form-select):focus {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+[data-theme='dark'] select:not(.form-select) {
+    background-color: #16223a;
+    border-color: rgba(241, 245, 250, 0.14);
+    color: #f1f5fa;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364718a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+[data-theme='dark'] select:not(.form-select):hover {
+    border-color: rgba(241, 245, 250, 0.28);
+}
+[data-theme='dark'] select:not(.form-select):focus {
+    border-color: rgba(223, 70, 70, 0.55);
+    box-shadow: 0 0 0 3px rgba(223, 70, 70, 0.14);
+}
+[data-theme='dark'] select:not(.form-select) option {
+    background: #16223a;
+    color: #f1f5fa;
 }
 
 .password-toggle {
@@ -458,6 +737,17 @@ select {
     border-radius: 20px;
     box-shadow: var(--shadow-lux);
     padding: 2.5rem;
+    color: var(--text-main);
+}
+.glass-card h1,
+.glass-card h2,
+.glass-card h3,
+.glass-card h4,
+.glass-card p,
+.glass-card span,
+.glass-card label,
+.glass-card li {
+    color: inherit;
 }
 
 .profile-avatar {
@@ -477,6 +767,7 @@ select {
     font-size: 1.8rem;
     text-align: center;
     margin-bottom: 2rem;
+    color: var(--text-main);
 }
 
 .profile-stats {
@@ -509,6 +800,7 @@ select {
     font-family: 'Lora', serif;
     font-size: 1.4rem;
     margin-bottom: 1.5rem;
+    color: var(--text-main);
 }
 
 .setting-row {
@@ -974,13 +1266,12 @@ select {
 }
 
 .form-input,
-.form-select,
 .form-textarea {
     width: 100%;
     padding: 10px 14px;
     border: 1px solid var(--input-border);
     border-radius: 12px;
-    background: var(--input-bg);
+    background-color: var(--input-bg);
     color: var(--text-main);
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
@@ -989,7 +1280,6 @@ select {
         box-shadow 0.2s;
 }
 .form-input:focus,
-.form-select:focus,
 .form-textarea:focus {
     outline: none;
     border-color: var(--accent-red);
@@ -999,15 +1289,6 @@ select {
 .form-textarea {
     resize: vertical;
     min-height: 60px;
-}
-
-.form-select {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
 }
 
 .input-error {

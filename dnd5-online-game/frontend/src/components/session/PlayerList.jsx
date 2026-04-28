@@ -1,4 +1,3 @@
-// Список игроков в сессии: карточки с именем, КД, HP, пассивной внимательностью.
 import React, { useState } from 'react';
 import { Shield, Heart, Eye, UserX } from 'lucide-react';
 import Modal from '../ui/Modal';

@@ -1,4 +1,3 @@
-// Боевой трекер: инициатива, НИП, урон, порядок ходов.
 import React, { useMemo, useState } from 'react';
 import { Plus, Trash2, ChevronRight, Play, Square, HelpCircle, Swords } from 'lucide-react';
 import Modal from '../ui/Modal';

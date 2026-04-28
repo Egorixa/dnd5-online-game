@@ -1,4 +1,3 @@
-// Список мировоззрений D&D 5e.
 export const ALIGNMENTS = [
   { value: 'lawful-good', label: 'Законно-добрый', labelEn: 'Lawful Good' },
   { value: 'neutral-good', label: 'Нейтрально-добрый', labelEn: 'Neutral Good' },

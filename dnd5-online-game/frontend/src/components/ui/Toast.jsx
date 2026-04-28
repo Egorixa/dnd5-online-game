@@ -1,4 +1,3 @@
-// Toast-уведомление.
 import React, { useEffect } from 'react';
 import { X, CheckCircle, AlertCircle } from 'lucide-react';
 

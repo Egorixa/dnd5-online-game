@@ -1,4 +1,3 @@
-// Страница регистрации: логин + пароль + подтверждение.
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -10,12 +9,12 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 
 const schema = yup.object({
-  login: yup
+  username: yup
     .string()
-    .required('Введите логин')
+    .required('Введите имя пользователя')
     .min(3, 'Минимум 3 символа')
     .max(20, 'Максимум 20 символов')
-    .matches(/^[a-zA-Z0-9а-яА-ЯёЁ]+$/, 'Только буквы и цифры'),
+    .matches(/^[a-zA-Z0-9_]+$/, 'Только латиница, цифры и _'),
   password: yup
     .string()
     .required('Введите пароль')
@@ -46,7 +45,7 @@ const RegisterPage = () => {
     setServerError('');
     setLoading(true);
     try {
-      await registerRequest(data.login, data.password, data.confirmPassword);
+      await registerRequest(data.username, data.password, data.confirmPassword);
       setSuccess(true);
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
@@ -80,11 +79,11 @@ const RegisterPage = () => {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="login-form">
             <Input
-              label="Логин"
-              name="login"
+              label="Имя пользователя"
+              name="username"
               register={register}
               placeholder="Введите имя пользователя"
-              error={errors.login?.message}
+              error={errors.username?.message}
             />
 
             <Input

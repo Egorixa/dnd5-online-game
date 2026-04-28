@@ -1,4 +1,3 @@
-// React Error Boundary для перехвата ошибок рендера.
 import React from 'react';
 
 class ErrorBoundary extends React.Component {

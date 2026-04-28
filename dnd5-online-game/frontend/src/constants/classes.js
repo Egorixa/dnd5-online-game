@@ -1,4 +1,3 @@
-// 12 классов D&D 5e: кость хитов, магия, базовая характеристика.
 export const CLASSES = [
   { value: 'barbarian', label: 'Варвар', labelEn: 'Barbarian', hitDie: 'd12', spellcasting: null, spellAbility: null },
   { value: 'bard', label: 'Бард', labelEn: 'Bard', hitDie: 'd8', spellcasting: 'full', spellAbility: 'charisma' },

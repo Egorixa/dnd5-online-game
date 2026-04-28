@@ -1,4 +1,3 @@
-// Zustand-стор авторизации: токен, пользователь, login/logout.
 import { create } from 'zustand';
 
 const useAuthStore = create((set) => ({

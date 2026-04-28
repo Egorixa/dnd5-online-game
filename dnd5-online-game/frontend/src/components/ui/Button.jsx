@@ -1,4 +1,3 @@
-// UI-компонент кнопки с вариантами: primary, secondary, danger.
 import React from 'react';
 
 const Button = ({ children, variant = 'primary', disabled, onClick, type = 'button', className = '', ...props }) => {

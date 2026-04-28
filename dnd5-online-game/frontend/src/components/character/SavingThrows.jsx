@@ -1,4 +1,3 @@
-// 6 спасбросков с чекбоксами владения и автобонусом.
 import React from 'react';
 import { SAVING_THROWS } from '../../constants/skills';
 import { getSavingThrowBonus, formatModifier } from '../../utils/calculations';

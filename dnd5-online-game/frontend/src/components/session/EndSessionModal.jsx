@@ -1,4 +1,3 @@
-// Модалка завершения сессии: выбор победителей/проигравших.
 import React, { useState } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';

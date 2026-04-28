@@ -1,4 +1,3 @@
-// 9 рас D&D 5e.
 export const RACES = [
   { value: 'dwarf', label: 'Дварф', labelEn: 'Dwarf' },
   { value: 'elf', label: 'Эльф', labelEn: 'Elf' },
