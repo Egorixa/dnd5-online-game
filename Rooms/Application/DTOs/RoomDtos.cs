@@ -4,6 +4,7 @@ namespace Rooms.Application.DTOs
 {
     public class CreateRoomRequest
     {
+        public string Name { get; set; } = string.Empty;
         public AccessMode AccessMode { get; set; } = AccessMode.PRIVATE;
     }
 
@@ -11,6 +12,7 @@ namespace Rooms.Application.DTOs
     {
         public Guid RoomId { get; set; }
         public string RoomCode { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public AccessMode AccessMode { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -19,7 +21,9 @@ namespace Rooms.Application.DTOs
     {
         public Guid RoomId { get; set; }
         public string RoomCode { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public Guid MasterId { get; set; }
+        public string MasterUsername { get; set; } = string.Empty;
         public int PlayersCount { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -28,6 +32,7 @@ namespace Rooms.Application.DTOs
     {
         public Guid RoomId { get; set; }
         public string RoomCode { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public AccessMode AccessMode { get; set; }
         public Guid ParticipantId { get; set; }
         public ParticipantRole Role { get; set; }
@@ -37,8 +42,10 @@ namespace Rooms.Application.DTOs
     public class RoomStateDto
     {
         public Guid RoomId { get; set; }
+        public string Name { get; set; } = string.Empty;
         public RoomStatus Status { get; set; }
         public Guid MasterId { get; set; }
+        public string MasterUsername { get; set; } = string.Empty;
         public List<RoomParticipantDto> Participants { get; set; } = new();
     }
 
@@ -46,6 +53,7 @@ namespace Rooms.Application.DTOs
     {
         public Guid ParticipantId { get; set; }
         public Guid UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
         public ParticipantRole Role { get; set; }
         public DateTime JoinedAt { get; set; }
     }

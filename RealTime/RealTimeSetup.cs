@@ -18,7 +18,7 @@ namespace RealTime
 
         public static IEndpointRouteBuilder MapRealTimeHubs(this IEndpointRouteBuilder endpoints)
         {
-            endpoints.MapHub<RoomHub>("/hubs/room");
+            endpoints.MapHub<RoomHub>("/hubs/session");
             return endpoints;
         }
     }

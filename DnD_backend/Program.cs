@@ -20,6 +20,18 @@ builder.Services.AddRoomsModule(builder.Configuration);
 builder.Services.AddCharactersModule(builder.Configuration);
 builder.Services.AddRealTimeModule();
 
+const string CorsPolicy = "ClientApps";
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:3000", "http://localhost:5173" };
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy => policy
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
+});
+
 builder.Services
     .AddControllers()
     .AddJsonOptions(o =>
@@ -76,6 +88,9 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseRouting();
+app.UseCors(CorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();

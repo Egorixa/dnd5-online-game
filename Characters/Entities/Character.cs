@@ -11,9 +11,8 @@ namespace Characters.Entities
         [Column("character_id")]
         public Guid CharacterId { get; set; }
 
-        [Required]
         [Column("room_id")]
-        public Guid RoomId { get; set; }
+        public Guid? RoomId { get; set; }
 
         [Required]
         [Column("owner_user_id")]
