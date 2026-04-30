@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FluentValidation;
 using Identity.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Rooms.Application.DTOs;
@@ -7,6 +8,7 @@ using Rooms.Data;
 using Rooms.Entities;
 using Shared.Errors;
 using Shared.RealTime;
+using ValidationException = Shared.Errors.ValidationException;
 
 namespace Rooms.Application.Services
 {
@@ -15,22 +17,37 @@ namespace Rooms.Application.Services
         private readonly RoomsDbContext _context;
         private readonly IRoomAccessChecker _access;
         private readonly IUserStatsService _stats;
+        private readonly IUserLookupService _users;
         private readonly IRoomNotifier _notifier;
+        private readonly IValidator<CreateRoomRequest> _createValidator;
 
         public RoomService(
             RoomsDbContext context,
             IRoomAccessChecker access,
             IUserStatsService stats,
-            IRoomNotifier notifier)
+            IUserLookupService users,
+            IRoomNotifier notifier,
+            IValidator<CreateRoomRequest> createValidator)
         {
             _context = context;
             _access = access;
             _stats = stats;
+            _users = users;
             _notifier = notifier;
+            _createValidator = createValidator;
         }
 
         public async Task<CreateRoomResponse> CreateAsync(Guid userId, CreateRoomRequest request, CancellationToken ct = default)
         {
+            var validation = await _createValidator.ValidateAsync(request, ct);
+            if (!validation.IsValid)
+            {
+                var details = validation.Errors
+                    .Select(e => new ApiErrorDetail { Field = e.PropertyName, Message = e.ErrorMessage })
+                    .ToList();
+                throw new ValidationException("Invalid room data", details);
+            }
+
             string code;
             int attempts = 0;
             while (true)
@@ -46,9 +63,10 @@ namespace Rooms.Application.Services
             {
                 RoomId = Guid.NewGuid(),
                 RoomCode = code,
+                Name = request.Name.Trim(),
                 MasterId = userId,
                 AccessMode = request.AccessMode,
-                Status = RoomStatus.Active,
+                Status = RoomStatus.ACTIVE,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -57,7 +75,7 @@ namespace Rooms.Application.Services
                 ParticipantId = Guid.NewGuid(),
                 RoomId = room.RoomId,
                 UserId = userId,
-                Role = ParticipantRole.Master,
+                Role = ParticipantRole.MASTER,
                 JoinedAt = DateTime.UtcNow
             };
 
@@ -69,6 +87,7 @@ namespace Rooms.Application.Services
             {
                 RoomId = room.RoomId,
                 RoomCode = room.RoomCode,
+                Name = room.Name,
                 AccessMode = room.AccessMode,
                 CreatedAt = room.CreatedAt
             };
@@ -79,19 +98,34 @@ namespace Rooms.Application.Services
             limit = Math.Clamp(limit, 1, 100);
             offset = Math.Max(0, offset);
 
-            return await _context.Rooms
-                .Where(r => r.AccessMode == AccessMode.PUBLIC && r.Status != RoomStatus.Finished)
+            var rooms = await _context.Rooms
+                .Where(r => r.AccessMode == AccessMode.PUBLIC && r.Status != RoomStatus.FINISHED)
                 .OrderByDescending(r => r.CreatedAt)
                 .Skip(offset).Take(limit)
-                .Select(r => new PublicRoomDto
+                .Select(r => new
                 {
-                    RoomId = r.RoomId,
-                    RoomCode = r.RoomCode,
-                    MasterId = r.MasterId,
+                    r.RoomId,
+                    r.RoomCode,
+                    r.Name,
+                    r.MasterId,
                     PlayersCount = r.Participants.Count(p => p.LeftAt == null),
-                    CreatedAt = r.CreatedAt
+                    r.CreatedAt
                 })
                 .ToListAsync(ct);
+
+            var masterIds = rooms.Select(r => r.MasterId).Distinct();
+            var usernames = await _users.GetUsernamesAsync(masterIds, ct);
+
+            return rooms.Select(r => new PublicRoomDto
+            {
+                RoomId = r.RoomId,
+                RoomCode = r.RoomCode,
+                Name = r.Name,
+                MasterId = r.MasterId,
+                MasterUsername = usernames.GetValueOrDefault(r.MasterId, string.Empty),
+                PlayersCount = r.PlayersCount,
+                CreatedAt = r.CreatedAt
+            }).ToList();
         }
 
         public async Task<JoinRoomResponse> JoinAsync(Guid userId, string roomCode, CancellationToken ct = default)
@@ -101,7 +135,7 @@ namespace Rooms.Application.Services
                 .FirstOrDefaultAsync(r => r.RoomCode == roomCode, ct)
                 ?? throw new NotFoundException("Room not found");
 
-            if (room.Status == RoomStatus.Finished)
+            if (room.Status == RoomStatus.FINISHED)
                 throw new ForbiddenException("Room is finished");
 
             var existingActive = room.Participants
@@ -114,15 +148,15 @@ namespace Rooms.Application.Services
                 ParticipantId = Guid.NewGuid(),
                 RoomId = room.RoomId,
                 UserId = userId,
-                Role = room.MasterId == userId ? ParticipantRole.Master : ParticipantRole.Player,
+                Role = room.MasterId == userId ? ParticipantRole.MASTER : ParticipantRole.PLAYER,
                 JoinedAt = DateTime.UtcNow
             };
 
             _context.Participants.Add(participant);
 
             // Resume room if master rejoins a paused session
-            if (room.Status == RoomStatus.Paused && room.MasterId == userId)
-                room.Status = RoomStatus.Active;
+            if (room.Status == RoomStatus.PAUSED && room.MasterId == userId)
+                room.Status = RoomStatus.ACTIVE;
 
             AppendEvent(room.RoomId, RoomEventType.ParticipantJoined, userId, new
             {
@@ -147,6 +181,7 @@ namespace Rooms.Application.Services
             {
                 RoomId = room.RoomId,
                 RoomCode = room.RoomCode,
+                Name = room.Name,
                 AccessMode = room.AccessMode,
                 ParticipantId = participant.ParticipantId,
                 Role = participant.Role,
@@ -161,9 +196,9 @@ namespace Rooms.Application.Services
             info.Participant.LeftAt = DateTime.UtcNow;
 
             // If the master leaves an active room — pause the session
-            if (info.IsMaster && info.Room.Status == RoomStatus.Active)
+            if (info.IsMaster && info.Room.Status == RoomStatus.ACTIVE)
             {
-                info.Room.Status = RoomStatus.Paused;
+                info.Room.Status = RoomStatus.PAUSED;
                 AppendEvent(roomId, RoomEventType.RoomPaused, userId, new { reason = "master_left" });
             }
 
@@ -186,7 +221,7 @@ namespace Rooms.Application.Services
             {
                 await _notifier.NotifyAsync(roomId, HubEvents.RoomUpdated, new
                 {
-                    status = RoomStatus.Paused.ToString()
+                    status = RoomStatus.PAUSED.ToString()
                 }, ct);
             }
         }
@@ -239,10 +274,10 @@ namespace Rooms.Application.Services
         {
             var info = await _access.RequireMasterAsync(masterUserId, roomId, ct);
 
-            if (info.Room.Status == RoomStatus.Finished)
+            if (info.Room.Status == RoomStatus.FINISHED)
                 throw new ConflictException("ALREADY_FINISHED", "Room is already finished");
 
-            info.Room.Status = RoomStatus.Finished;
+            info.Room.Status = RoomStatus.FINISHED;
             info.Room.FinishedAt = DateTime.UtcNow;
 
             // mark all active participants as left
@@ -265,7 +300,7 @@ namespace Rooms.Application.Services
 
             await _notifier.NotifyAsync(roomId, HubEvents.RoomUpdated, new
             {
-                status = RoomStatus.Finished.ToString(),
+                status = RoomStatus.FINISHED.ToString(),
                 finishedAt = info.Room.FinishedAt
             }, ct);
         }
@@ -305,17 +340,23 @@ namespace Rooms.Application.Services
                 .FirstOrDefaultAsync(r => r.RoomId == roomId, ct)
                 ?? throw new NotFoundException("Room not found");
 
+            var activeParticipants = room.Participants.Where(p => p.LeftAt == null).ToList();
+            var lookupIds = activeParticipants.Select(p => p.UserId).Append(room.MasterId);
+            var usernames = await _users.GetUsernamesAsync(lookupIds, ct);
+
             return new RoomStateDto
             {
                 RoomId = room.RoomId,
+                Name = room.Name,
                 Status = room.Status,
                 MasterId = room.MasterId,
-                Participants = room.Participants
-                    .Where(p => p.LeftAt == null)
+                MasterUsername = usernames.GetValueOrDefault(room.MasterId, string.Empty),
+                Participants = activeParticipants
                     .Select(p => new RoomParticipantDto
                     {
                         ParticipantId = p.ParticipantId,
                         UserId = p.UserId,
+                        Username = usernames.GetValueOrDefault(p.UserId, string.Empty),
                         Role = p.Role,
                         JoinedAt = p.JoinedAt
                     })

@@ -148,6 +148,92 @@ namespace Characters.Application.Services
             return character;
         }
 
+        // ---- Templates (no room) ----
+
+        public async Task<CharacterResponse> CreateTemplateAsync(Guid userId, CharacterUpsertRequest request, CancellationToken ct = default)
+        {
+            await ValidateAsync(request, isCreate: true, ct);
+
+            var character = new Character
+            {
+                CharacterId = Guid.NewGuid(),
+                RoomId = null,
+                OwnerUserId = userId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            ApplyRequest(character, request);
+            EnforceInvariants(character);
+
+            _context.Characters.Add(character);
+            await _context.SaveChangesAsync(ct);
+
+            return CharacterMapper.ToResponse(character);
+        }
+
+        public async Task<List<CharacterResponse>> ListTemplatesAsync(Guid userId, CancellationToken ct = default)
+        {
+            var characters = await _context.Characters
+                .Include(c => c.SkillProficiencies)
+                .Include(c => c.SaveProficiencies)
+                .Include(c => c.Attacks)
+                .Include(c => c.Spells)
+                .Where(c => c.OwnerUserId == userId && c.RoomId == null && !c.IsArchived)
+                .ToListAsync(ct);
+
+            return characters.Select(CharacterMapper.ToResponse).ToList();
+        }
+
+        public async Task<CharacterResponse> GetTemplateAsync(Guid userId, Guid characterId, CancellationToken ct = default)
+        {
+            var character = await LoadTemplateAsync(userId, characterId, ct);
+            return CharacterMapper.ToResponse(character);
+        }
+
+        public async Task<CharacterResponse> UpdateTemplateAsync(Guid userId, Guid characterId, CharacterUpsertRequest request, CancellationToken ct = default)
+        {
+            var character = await LoadTemplateAsync(userId, characterId, ct);
+            await ValidateAsync(request, isCreate: false, ct);
+
+            if (request.RowVersion.HasValue && request.RowVersion.Value != character.RowVersion)
+                throw new ConflictException("VERSION_CONFLICT", "Character was modified concurrently");
+
+            ApplyRequest(character, request);
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+
+            EnforceInvariants(character);
+
+            await _context.SaveChangesAsync(ct);
+            return CharacterMapper.ToResponse(character);
+        }
+
+        public async Task DeleteTemplateAsync(Guid userId, Guid characterId, CancellationToken ct = default)
+        {
+            var character = await LoadTemplateAsync(userId, characterId, ct);
+            character.IsArchived = true;
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+            await _context.SaveChangesAsync(ct);
+        }
+
+        private async Task<Character> LoadTemplateAsync(Guid userId, Guid characterId, CancellationToken ct)
+        {
+            var character = await _context.Characters
+                .Include(c => c.SkillProficiencies)
+                .Include(c => c.SaveProficiencies)
+                .Include(c => c.Attacks)
+                .Include(c => c.Spells)
+                .FirstOrDefaultAsync(c => c.CharacterId == characterId && c.RoomId == null && !c.IsArchived, ct)
+                ?? throw new NotFoundException("Character template not found");
+
+            if (character.OwnerUserId != userId)
+                throw new ForbiddenException("Template does not belong to current user");
+
+            return character;
+        }
+
         private async Task ValidateAsync(CharacterUpsertRequest request, bool isCreate, CancellationToken ct)
         {
             var result = await _validator.ValidateAsync(request, ct);

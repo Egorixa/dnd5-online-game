@@ -107,7 +107,7 @@ namespace Characters.Application.DTOs
     public class CharacterResponse
     {
         public Guid CharacterId { get; set; }
-        public Guid RoomId { get; set; }
+        public Guid? RoomId { get; set; }
         public Guid OwnerUserId { get; set; }
         public uint RowVersion { get; set; }
 

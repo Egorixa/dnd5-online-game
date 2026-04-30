@@ -1,8 +1,11 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Rooms.Application.DTOs;
 using Rooms.Application.Interfaces;
 using Rooms.Application.Services;
+using Rooms.Application.Validators;
 using Rooms.Data;
 
 namespace Rooms
@@ -21,6 +24,8 @@ namespace Rooms
             services.AddScoped<IRoomAccessChecker, RoomAccessChecker>();
             services.AddScoped<IRoomService, RoomService>();
             services.AddScoped<IDiceService, DiceService>();
+
+            services.AddScoped<IValidator<CreateRoomRequest>, CreateRoomRequestValidator>();
 
             return services;
         }

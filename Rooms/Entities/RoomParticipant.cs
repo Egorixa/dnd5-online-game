@@ -5,8 +5,8 @@ namespace Rooms.Entities
 {
     public enum ParticipantRole
     {
-        Master,
-        Player
+        MASTER,
+        PLAYER
     }
 
     [Table("room_participants")]

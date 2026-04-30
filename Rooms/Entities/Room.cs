@@ -11,9 +11,9 @@ namespace Rooms.Entities
 
     public enum RoomStatus
     {
-        Active,
-        Paused,
-        Finished
+        ACTIVE,
+        PAUSED,
+        FINISHED
     }
 
     [Table("rooms")]
@@ -29,6 +29,11 @@ namespace Rooms.Entities
         public string RoomCode { get; set; } = string.Empty;
 
         [Required]
+        [MaxLength(100)]
+        [Column("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
         [Column("master_id")]
         public Guid MasterId { get; set; }
 
@@ -36,7 +41,7 @@ namespace Rooms.Entities
         public AccessMode AccessMode { get; set; }
 
         [Column("status")]
-        public RoomStatus Status { get; set; } = RoomStatus.Active;
+        public RoomStatus Status { get; set; } = RoomStatus.ACTIVE;
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -11,9 +11,10 @@ namespace Characters.Entities
         [Column("character_id")]
         public Guid CharacterId { get; set; }
 
-        [Required]
+        // Null when this row is a template stored in the user's account
+        // (per command TZ 4.1.1.3.2.4 / private TZ 6.4 п.6).
         [Column("room_id")]
-        public Guid RoomId { get; set; }
+        public Guid? RoomId { get; set; }
 
         [Required]
         [Column("owner_user_id")]
