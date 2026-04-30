@@ -34,7 +34,7 @@ namespace Rooms.Application.Services
         {
             var info = await _access.RequireParticipantAsync(userId, roomId, ct);
 
-            if (info.Room.Status == RoomStatus.Finished)
+            if (info.Room.Status == RoomStatus.FINISHED)
                 throw new ForbiddenException("Cannot roll dice in a finished room");
 
             var response = new DiceRollResponse

@@ -24,6 +24,7 @@ namespace Identity
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserStatsService, UserStatsService>();
+            services.AddScoped<IUserLookupService, UserLookupService>();
 
             services.AddScoped<IValidator<RegisterRequest>, RegisterRequestValidator>();
             services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
