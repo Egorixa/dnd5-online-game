@@ -52,6 +52,23 @@
             android:layout_marginTop="4dp"
             android:text="• Изменения мастера (HP, опыт, состояния) появляются автоматически.\n• При обрыве связи произойдёт переподключение и восстановление данных.\n• Для бросков кубиков перейдите на вкладку «Кубики»."/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textStyle="bold"
+            android:text="События комнаты"/>
+
+        <TextView
+            android:id="@+id/tv_events_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:padding="8dp"
+            android:minHeight="120dp"
+            android:textSize="13sp"
+            android:background="?attr/selectableItemBackground"/>
+
         <Button
             android:id="@+id/btn_simulate_end"
             android:layout_width="match_parent"

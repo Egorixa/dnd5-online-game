@@ -12,8 +12,14 @@ public class Character {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
-    // Владелец персонажа
+    // Владелец персонажа (локальный)
     public int userId;
+
+    // ── Серверная синхронизация ────────────────────────────────────────────
+    /** GUID на сервере. Пусто => персонаж только локальный. */
+    public String serverCharacterId = "";
+    /** Optimistic concurrency, синхронизируется с backend RowVersion. */
+    public long rowVersion = 0;
 
     // ── Основные сведения ──────────────────────────────────────────────────
     public String characterName = "";   // 1–50 символов

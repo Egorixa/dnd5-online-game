@@ -28,6 +28,23 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/INDEX.LIST",
+                "META-INF/*.kotlin_module"
+            )
+        }
     }
 }
 
@@ -43,6 +60,19 @@ dependencies {
 
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
+
+    // Networking
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+
+    // SignalR (real-time hub)
+    implementation(libs.signalr)
+    implementation(libs.rxjava)
+    implementation(libs.slf4j.android)
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

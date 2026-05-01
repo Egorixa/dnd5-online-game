@@ -25,4 +25,10 @@ public interface CharacterDao {
 
     @Query("SELECT * FROM characters WHERE id = :id LIMIT 1")
     Character findById(int id);
+
+    @Query("SELECT * FROM characters WHERE serverCharacterId = :serverId LIMIT 1")
+    Character findByServerId(String serverId);
+
+    @Query("DELETE FROM characters WHERE userId = :userId AND serverCharacterId != ''")
+    void deleteServerCharactersForUser(int userId);
 }

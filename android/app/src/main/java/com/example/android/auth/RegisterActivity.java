@@ -5,19 +5,26 @@ import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.android.R;
-import com.example.android.data.AppDatabase;
 import com.example.android.data.SessionManager;
-import com.example.android.data.dao.UserDao;
-import com.example.android.data.model.User;
+import com.example.android.net.ApiClient;
+import com.example.android.net.ApiErrors;
+import com.example.android.net.dto.AuthDtos;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private TextInputLayout tilUsername, tilPassword, tilPasswordConfirm;
     private TextInputEditText etUsername, etPassword, etPasswordConfirm;
+    private Button btnRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +39,7 @@ public class RegisterActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.et_password);
         etPasswordConfirm = findViewById(R.id.et_password_confirm);
 
-        Button btnRegister = findViewById(R.id.btn_register);
+        btnRegister = findViewById(R.id.btn_register);
         TextView tvToLogin = findViewById(R.id.tv_to_login);
 
         btnRegister.setOnClickListener(v -> tryRegister());
@@ -44,8 +51,8 @@ public class RegisterActivity extends AppCompatActivity {
         tilPassword.setError(null);
         tilPasswordConfirm.setError(null);
 
-        String username = etUsername.getText() != null ? etUsername.getText().toString().trim() : "";
-        String password = etPassword.getText() != null ? etPassword.getText().toString() : "";
+        final String username = etUsername.getText() != null ? etUsername.getText().toString().trim() : "";
+        final String password = etPassword.getText() != null ? etPassword.getText().toString() : "";
         String confirm = etPasswordConfirm.getText() != null ? etPasswordConfirm.getText().toString() : "";
 
         if (username.length() < 3 || username.length() > 20) {
@@ -65,21 +72,30 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        UserDao dao = AppDatabase.getInstance(this).userDao();
-        if (dao.countByUsername(username) > 0) {
-            tilUsername.setError("Имя уже занято");
-            Toast.makeText(this, "Регистрация не удалась", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        btnRegister.setEnabled(false);
+        AuthDtos.RegisterRequest req = new AuthDtos.RegisterRequest(username, password);
+        ApiClient.get(this).auth().register(req).enqueue(new Callback<AuthDtos.RegisterResponse>() {
+            @Override
+            public void onResponse(Call<AuthDtos.RegisterResponse> call, Response<AuthDtos.RegisterResponse> response) {
+                btnRegister.setEnabled(true);
+                if (!response.isSuccessful() || response.body() == null) {
+                    String msg = ApiErrors.extract(response, "Регистрация не удалась");
+                    Toast.makeText(RegisterActivity.this, msg, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Toast.makeText(RegisterActivity.this,
+                        "Аккаунт создан. Войдите.",
+                        Toast.LENGTH_SHORT).show();
+                finish();
+            }
 
-        User user = new User(username, password);
-        long id = dao.insert(user);
-        if (id <= 0) {
-            Toast.makeText(this, "Ошибка регистрации", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Toast.makeText(this, "Аккаунт создан. Войдите.", Toast.LENGTH_SHORT).show();
-        finish();
+            @Override
+            public void onFailure(Call<AuthDtos.RegisterResponse> call, Throwable t) {
+                btnRegister.setEnabled(true);
+                Toast.makeText(RegisterActivity.this,
+                        "Не удалось подключиться: " + ApiErrors.fromThrowable(t, "сеть"),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

@@ -26,6 +26,10 @@ import com.example.android.data.DndData;
 import com.example.android.data.SessionManager;
 import com.example.android.data.dao.CharacterDao;
 import com.example.android.data.model.Character;
+import com.example.android.net.ApiClient;
+import com.example.android.net.ApiErrors;
+import com.example.android.net.dto.CharacterDtos;
+import com.example.android.net.mapper.CharacterMapper;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -658,15 +662,79 @@ public class CharacterEditorFragment extends Fragment {
 
         c.updatedAt = System.currentTimeMillis();
 
+        SessionManager session = new SessionManager(requireContext());
+        boolean useServer = session.hasServerSession();
+        String activeRoomId = session.getActiveRoomId();
+        boolean inRoom = useServer && !TextUtils.isEmpty(activeRoomId);
+
+        if (useServer) {
+            saveToServer(c, session, activeRoomId, inRoom);
+        } else {
+            saveLocal(c);
+            Toast.makeText(getContext(), "Персонаж сохранён локально", Toast.LENGTH_SHORT).show();
+            Navigation.findNavController(requireView()).popBackStack();
+        }
+    }
+
+    private void saveLocal(Character c) {
         CharacterDao dao = AppDatabase.getInstance(requireContext()).characterDao();
         if (editing == null) {
             dao.insert(c);
         } else {
             dao.update(c);
         }
+    }
 
-        Toast.makeText(getContext(), "Персонаж сохранён", Toast.LENGTH_SHORT).show();
-        Navigation.findNavController(requireView()).popBackStack();
+    private void saveToServer(Character c, SessionManager session,
+                              String activeRoomId, boolean inRoom) {
+        CharacterDtos.CharacterUpsertRequest req = CharacterMapper.toUpsert(c);
+        retrofit2.Call<CharacterDtos.CharacterResponse> call;
+        com.example.android.net.api.CharactersApi api =
+                ApiClient.get(requireContext()).characters();
+
+        boolean hasServerId = !TextUtils.isEmpty(c.serverCharacterId);
+        if (inRoom) {
+            if (hasServerId) {
+                call = api.updateInRoom(activeRoomId, c.serverCharacterId, req);
+            } else {
+                call = api.createInRoom(activeRoomId, req);
+            }
+        } else {
+            if (hasServerId) {
+                call = api.updateTemplate(c.serverCharacterId, req);
+            } else {
+                call = api.createTemplate(req);
+            }
+        }
+
+        call.enqueue(new retrofit2.Callback<CharacterDtos.CharacterResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<CharacterDtos.CharacterResponse> call,
+                                   retrofit2.Response<CharacterDtos.CharacterResponse> response) {
+                if (!isAdded()) return;
+                if (!response.isSuccessful() || response.body() == null) {
+                    Toast.makeText(getContext(),
+                            ApiErrors.extract(response, "Ошибка сохранения"),
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Character merged = CharacterMapper.fromResponse(response.body(), c, session.getUserId());
+                saveLocal(merged);
+                Toast.makeText(getContext(), "Персонаж сохранён на сервере", Toast.LENGTH_SHORT).show();
+                Navigation.findNavController(requireView()).popBackStack();
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<CharacterDtos.CharacterResponse> call, Throwable t) {
+                if (!isAdded()) return;
+                // Сохраняем локально как fallback
+                saveLocal(c);
+                Toast.makeText(getContext(),
+                        "Сохранено локально (сеть: " + ApiErrors.fromThrowable(t, "ошибка") + ")",
+                        Toast.LENGTH_LONG).show();
+                Navigation.findNavController(requireView()).popBackStack();
+            }
+        });
     }
 
     // ──────────── Утилиты ────────────
