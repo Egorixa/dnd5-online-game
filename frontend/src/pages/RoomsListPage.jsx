@@ -3,6 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { Users, RefreshCw, LogIn, Clock, Crown } from 'lucide-react';
 import * as roomsApi from '../api/rooms';
 import useRoomStore from '../stores/roomStore';
+import { parseApiError } from '../utils/apiError';
+
+const STATUS_LABEL = {
+  ACTIVE: 'Активна',
+  PAUSED: 'Пауза',
+  FINISHED: 'Завершена',
+};
+
+const STATUS_CLASS = {
+  ACTIVE: 'room-card-status-active',
+  PAUSED: 'room-card-status-paused',
+  FINISHED: 'room-card-status-finished',
+};
 
 const REFRESH_INTERVAL_MS = 15000;
 
@@ -32,7 +45,7 @@ const RoomsListPage = () => {
       const { data } = await roomsApi.getPublicRooms(50, 0);
       setRooms(data.rooms || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Не удалось загрузить список комнат');
+      setError(parseApiError(err, 'Не удалось загрузить список комнат').message);
     } finally {
       if (!silent) setLoading(false);
     }
@@ -50,7 +63,15 @@ const RoomsListPage = () => {
       const joined = await joinRoomByCode(room.roomCode);
       navigate(`/session/${joined.roomId}`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Не удалось присоединиться');
+      const status = err?.response?.status;
+      const parsed = parseApiError(err, 'Не удалось присоединиться');
+      if (status === 403 || status === 404 || parsed.code === 'ALREADY_FINISHED') {
+        setRooms((prev) => prev.filter((r) => r.roomId !== room.roomId));
+        setError(`${parsed.message}. Список обновлён.`);
+        load(true);
+      } else {
+        setError(parsed.message);
+      }
     } finally {
       setJoiningCode(null);
     }
@@ -91,11 +112,15 @@ const RoomsListPage = () => {
               localName = map[room.roomId];
             } catch { /* ignore */ }
             const displayName = room.name || localName;
+            const statusKey = (room.status || 'ACTIVE').toUpperCase();
+            const statusLabel = STATUS_LABEL[statusKey] || 'Активна';
+            const statusClass = STATUS_CLASS[statusKey] || 'room-card-status-active';
+            const isFinished = statusKey === 'FINISHED';
             return (
             <li key={room.roomId} className="room-card">
               <div className="room-card-header">
                 <code className="room-card-code">{room.roomCode}</code>
-                <span className="room-card-status room-card-status-active">Активна</span>
+                <span className={`room-card-status ${statusClass}`}>{statusLabel}</span>
               </div>
               {displayName && (
                 <div className="character-card-name" style={{ fontSize: '1.05rem' }}>
@@ -121,10 +146,14 @@ const RoomsListPage = () => {
               <button
                 className="btn-main room-card-join"
                 onClick={() => handleJoin(room)}
-                disabled={joiningCode === room.roomCode}
+                disabled={joiningCode === room.roomCode || isFinished}
               >
                 <LogIn size={16} />
-                {joiningCode === room.roomCode ? 'Подключение…' : 'Присоединиться'}
+                {isFinished
+                  ? 'Завершена'
+                  : joiningCode === room.roomCode
+                    ? 'Подключение…'
+                    : 'Присоединиться'}
               </button>
             </li>
             );

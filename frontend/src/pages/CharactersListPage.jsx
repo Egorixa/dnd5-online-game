@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Plus, User, Trash2, AlertTriangle } from 'lucide-react';
 import * as charactersApi from '../api/characters';
 import { RACES, CLASSES } from '../constants/dnd';
+import {
+  toApiRace,
+  toApiClass,
+  fromApiRace,
+  fromApiClass,
+} from '../constants/enumMaps';
+import { parseApiError } from '../utils/apiError';
 import Modal from '../components/ui/Modal';
 
 const formatDate = (iso) => {
@@ -41,7 +48,7 @@ const CharactersListPage = () => {
       if (err.response?.status === 404) {
         setEndpointMissing(true);
       } else {
-        setError(err.response?.data?.message || 'Не удалось загрузить шаблоны');
+        setError(parseApiError(err, 'Не удалось загрузить шаблоны').message);
       }
       setTemplates([]);
     } finally {
@@ -59,10 +66,12 @@ const CharactersListPage = () => {
     setSaving(true);
     setError('');
     try {
+      const apiClass = toApiClass(draft.characterClass);
       await charactersApi.createTemplate({
         name: draft.name.trim(),
-        race: draft.race,
-        characterClass: draft.characterClass,
+        race: toApiRace(draft.race),
+        characterClass: apiClass,
+        class: apiClass,
         level: Number(draft.level) || 1,
       });
       setShowCreate(false);
@@ -73,7 +82,7 @@ const CharactersListPage = () => {
         setEndpointMissing(true);
         setShowCreate(false);
       } else {
-        setError(err.response?.data?.message || 'Не удалось создать шаблон');
+        setError(parseApiError(err, 'Не удалось создать шаблон').message);
       }
     } finally {
       setSaving(false);
@@ -144,10 +153,10 @@ const CharactersListPage = () => {
                 <div className="character-card-name">{t.name || 'Без имени'}</div>
                 <div className="room-card-meta">
                   <div className="room-card-meta-row">
-                    <span>Раса: <strong>{t.race || '—'}</strong></span>
+                    <span>Раса: <strong>{t.race ? fromApiRace(t.race) : '—'}</strong></span>
                   </div>
                   <div className="room-card-meta-row">
-                    <span>Класс: <strong>{t.characterClass || t.class || '—'}</strong></span>
+                    <span>Класс: <strong>{(t.characterClass || t.class) ? fromApiClass(t.characterClass || t.class) : '—'}</strong></span>
                   </div>
                   <div className="room-card-meta-row">
                     <span>Уровень: <strong>{t.level ?? '—'}</strong></span>
