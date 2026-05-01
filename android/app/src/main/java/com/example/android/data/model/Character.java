@@ -11,6 +11,10 @@ public class Character {
 
     public int userId;
 
+    public String serverCharacterId = "";
+
+    public long rowVersion = 0;
+
     public String characterName = "";
     public String playerName = "";
     public String race = "";

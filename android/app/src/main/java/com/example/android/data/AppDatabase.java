@@ -9,7 +9,7 @@ import com.example.android.data.dao.UserDao;
 import com.example.android.data.model.Character;
 import com.example.android.data.model.User;
 
-@Database(entities = {User.class, Character.class}, version = 1, exportSchema = false)
+@Database(entities = {User.class, Character.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
