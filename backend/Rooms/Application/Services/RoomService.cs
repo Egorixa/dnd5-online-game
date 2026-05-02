@@ -59,11 +59,13 @@ namespace Rooms.Application.Services
                     throw new ConflictException("ROOM_CODE_CONFLICT", "Could not allocate a unique room code");
             }
 
+            var name = string.IsNullOrWhiteSpace(request.Name) ? code : request.Name.Trim();
+
             var room = new Room
             {
                 RoomId = Guid.NewGuid(),
                 RoomCode = code,
-                Name = request.Name.Trim(),
+                Name = name,
                 MasterId = userId,
                 AccessMode = request.AccessMode,
                 Status = RoomStatus.ACTIVE,
