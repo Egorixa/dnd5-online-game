@@ -1,13 +1,20 @@
-# Visual Studio
 .vs/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-# Build
 bin/
 obj/
 
-# Docker
 *.log
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
+
+frontend/node_modules/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
