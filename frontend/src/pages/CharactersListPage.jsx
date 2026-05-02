@@ -16,6 +16,41 @@ import { parseApiError } from '../utils/apiError';
 import { TZ_MESSAGES } from '../utils/errorMessages';
 import useToastStore from '../stores/toastStore';
 import Modal from '../components/ui/Modal';
+import {
+  getModifier,
+  formatModifier,
+  getPassivePerception,
+  getSpellSaveDC,
+  getSpellAbility,
+  canCastSpells,
+} from '../utils/calculations';
+import { getProficiencyBonus } from '../constants/proficiencyBonus';
+import { CLASSES as CLASSES_DEF } from '../constants/classes';
+
+const findClassByRuLabel = (ruLabel) => CLASSES_DEF.find((c) => c.label === ruLabel);
+
+const DATES_KEY = 'dnd_character_dates';
+
+const readDatesCache = () => {
+  try { return JSON.parse(localStorage.getItem(DATES_KEY) || '{}'); }
+  catch { return {}; }
+};
+const writeDate = (id) => {
+  if (!id) return;
+  const cache = readDatesCache();
+  cache[id] = new Date().toISOString();
+  localStorage.setItem(DATES_KEY, JSON.stringify(cache));
+};
+
+const ABILITY_FIELDS = [
+  { key: 'strength', label: 'Сила' },
+  { key: 'dexterity', label: 'Ловкость' },
+  { key: 'constitution', label: 'Телосложение' },
+  { key: 'intelligence', label: 'Интеллект' },
+  { key: 'wisdom', label: 'Мудрость' },
+  { key: 'charisma', label: 'Харизма' },
+];
+
 
 const formatDate = (iso) => {
   if (!iso) return '—';
@@ -42,7 +77,19 @@ const buildEditDraft = (t) => ({
   currentHp: t.currentHp ?? 0,
   maxHp: t.maxHp ?? 0,
   experiencePoints: t.experiencePoints ?? 0,
+  strength: t.strength ?? 10,
+  dexterity: t.dexterity ?? 10,
+  constitution: t.constitution ?? 10,
+  intelligence: t.intelligence ?? 10,
+  wisdom: t.wisdom ?? 10,
+  charisma: t.charisma ?? 10,
 });
+
+const clampAbility = (v) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 10;
+  return Math.max(1, Math.min(30, Math.round(n)));
+};
 
 const CharactersListPage = () => {
   const [templates, setTemplates] = useState([]);
@@ -102,13 +149,14 @@ const CharactersListPage = () => {
     setError('');
     try {
       const apiClass = toApiClass(draft.characterClass);
-      await charactersApi.createTemplate({
+      const { data } = await charactersApi.createTemplate({
         name: draft.name.trim(),
         race: toApiRace(draft.race),
         characterClass: apiClass,
         class: apiClass,
         level: Number(draft.level) || 1,
       });
+      writeDate(data?.characterId);
       setShowCreate(false);
       setDraft(emptyDraft());
       await load();
@@ -160,9 +208,17 @@ const CharactersListPage = () => {
       currentHp: Number(editDraft.currentHp) || 0,
       maxHp: Number(editDraft.maxHp) || 0,
       experiencePoints: Number(editDraft.experiencePoints) || 0,
+      strength: clampAbility(editDraft.strength),
+      dexterity: clampAbility(editDraft.dexterity),
+      constitution: clampAbility(editDraft.constitution),
+      intelligence: clampAbility(editDraft.intelligence),
+      wisdom: clampAbility(editDraft.wisdom),
+      charisma: clampAbility(editDraft.charisma),
     };
     try {
-      await charactersApi.updateTemplate(editTarget.characterId || editTarget.id, payload);
+      const id = editTarget.characterId || editTarget.id;
+      await charactersApi.updateTemplate(id, payload);
+      writeDate(id);
       useToastStore.getState().success('Шаблон обновлён');
       closeEdit();
       await load();
@@ -261,7 +317,10 @@ const CharactersListPage = () => {
                     <span>Уровень: <strong>{t.level ?? '—'}</strong></span>
                   </div>
                   <div className="room-card-meta-row">
-                    <span>Изменён: {formatDate(t.updatedAt || t.createdAt)}</span>
+                    <span>Изменён: {formatDate(
+                      t.updatedAt || t.createdAt
+                        || readDatesCache()[t.characterId || t.id]
+                    )}</span>
                   </div>
                 </div>
               </li>
@@ -433,6 +492,56 @@ const CharactersListPage = () => {
                 onChange={(e) => setEditDraft({ ...editDraft, experiencePoints: e.target.value })}
               />
             </div>
+
+            <div className="ability-grid">
+              {ABILITY_FIELDS.map(({ key, label }) => {
+                const score = Number(editDraft[key]) || 0;
+                const mod = getModifier(score);
+                return (
+                  <div key={key} className="ability-cell">
+                    <label className="input-label">{label}</label>
+                    <input
+                      className="form-input ability-input"
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={editDraft[key]}
+                      onChange={(e) => setEditDraft({ ...editDraft, [key]: e.target.value })}
+                    />
+                    <div className="ability-modifier">мод. {formatModifier(mod)}</div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {(() => {
+              const lvl = Number(editDraft.level) || 1;
+              const profBonus = getProficiencyBonus(lvl);
+              const wis = Number(editDraft.wisdom) || 10;
+              const passive = getPassivePerception(wis, lvl, false);
+              const cls = findClassByRuLabel(editDraft.characterClass);
+              const spellAbility = cls ? getSpellAbility(cls.value) : null;
+              const spellScore = spellAbility ? Number(editDraft[spellAbility]) || 10 : null;
+              const dc = (cls && canCastSpells(cls.value) && spellScore != null)
+                ? getSpellSaveDC(lvl, spellScore) : null;
+              return (
+                <div className="derived-stats">
+                  <div className="derived-stat">
+                    <span className="derived-label">Бонус мастерства</span>
+                    <span className="derived-value">{formatModifier(profBonus)}</span>
+                  </div>
+                  <div className="derived-stat">
+                    <span className="derived-label">Пассивное внимание</span>
+                    <span className="derived-value">{passive}</span>
+                  </div>
+                  <div className="derived-stat">
+                    <span className="derived-label">Сложность спасброска</span>
+                    <span className="derived-value">{dc != null ? dc : '—'}</span>
+                  </div>
+                </div>
+              );
+            })()}
+
             {editError && <div className="server-error">{editError}</div>}
             <div className="modal-actions">
               <button className="btn-secondary" onClick={closeEdit} disabled={saving}>
