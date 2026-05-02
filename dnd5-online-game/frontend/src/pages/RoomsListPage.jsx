@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Users, RefreshCw, LogIn, Clock, Crown } from 'lucide-react';
 import * as roomsApi from '../api/rooms';
 import useRoomStore from '../stores/roomStore';
+import useToastStore from '../stores/toastStore';
 import { parseApiError } from '../utils/apiError';
+import { TZ_MESSAGES } from '../utils/errorMessages';
 
 const STATUS_LABEL = {
   ACTIVE: 'Активна',
@@ -45,7 +47,12 @@ const RoomsListPage = () => {
       const { data } = await roomsApi.getPublicRooms(50, 0);
       setRooms(data.rooms || []);
     } catch (err) {
-      setError(parseApiError(err, 'Не удалось загрузить список комнат').message);
+      const parsed = parseApiError(err, 'Не удалось загрузить список комнат');
+      setError(parsed.message);
+      const status = err?.response?.status;
+      if (!err?.response || status >= 500) {
+        useToastStore.getState().error(parsed.message);
+      }
     } finally {
       if (!silent) setLoading(false);
     }
@@ -65,12 +72,20 @@ const RoomsListPage = () => {
     } catch (err) {
       const status = err?.response?.status;
       const parsed = parseApiError(err, 'Не удалось присоединиться');
+      const tzText = status === 404
+        ? TZ_MESSAGES.ROOM_NOT_FOUND
+        : (status === 403 || parsed.code === 'ALREADY_FINISHED' || parsed.code === 'ALREADY_JOINED')
+          ? TZ_MESSAGES.ROOM_UNAVAILABLE
+          : parsed.message;
       if (status === 403 || status === 404 || parsed.code === 'ALREADY_FINISHED') {
         setRooms((prev) => prev.filter((r) => r.roomId !== room.roomId));
-        setError(`${parsed.message}. Список обновлён.`);
+        setError(`${tzText}. Список обновлён.`);
         load(true);
       } else {
-        setError(parsed.message);
+        setError(tzText);
+      }
+      if (!err?.response || (status >= 500)) {
+        useToastStore.getState().error(tzText);
       }
     } finally {
       setJoiningCode(null);

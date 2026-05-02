@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
-const Input = ({ label, error, type = 'text', register, name, placeholder, ...props }) => {
+const Input = ({ label, error, type = 'text', register, name, placeholder, autoComplete, ...props }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
   const inputType = isPassword && showPassword ? 'text' : type;
+  const resolvedAutoComplete = autoComplete ?? (isPassword ? 'new-password' : undefined);
 
   return (
     <div className="input-group">
@@ -14,6 +15,7 @@ const Input = ({ label, error, type = 'text', register, name, placeholder, ...pr
           className={`form-input ${error ? 'input-error' : ''}`}
           type={inputType}
           placeholder={placeholder}
+          autoComplete={resolvedAutoComplete}
           {...(register ? register(name) : { name })}
           {...props}
         />

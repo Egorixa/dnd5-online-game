@@ -9,6 +9,9 @@ import useThemeStore from '../stores/themeStore';
 import { loginRequest, getProfile } from '../api/auth';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import { parseApiError } from '../utils/apiError';
+import { TZ_MESSAGES } from '../utils/errorMessages';
+import useToastStore from '../stores/toastStore';
 
 const schema = yup.object({
   username: yup
@@ -53,8 +56,19 @@ const LoginPage = () => {
       } catch {  }
       navigate('/');
     } catch (err) {
-      const message =
-        err.response?.data?.message || 'Неверный логин или пароль';
+      const status = err?.response?.status;
+      let message;
+      if (status === 400 || status === 401) {
+        message = TZ_MESSAGES.AUTH_INVALID;
+      } else if (status >= 500) {
+        message = TZ_MESSAGES.SERVER_ERROR;
+        useToastStore.getState().error(message);
+      } else if (!err?.response) {
+        message = TZ_MESSAGES.NETWORK_OFFLINE;
+        useToastStore.getState().error(message);
+      } else {
+        message = parseApiError(err, TZ_MESSAGES.AUTH_INVALID).message;
+      }
       setServerError(message);
     } finally {
       setLoading(false);

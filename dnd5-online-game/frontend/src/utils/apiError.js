@@ -1,3 +1,5 @@
+import { mapErrorToTzMessage } from './errorMessages';
+
 const normalizeFieldName = (raw) => {
   if (!raw) return '';
   let key = String(raw).replace(/^\$\./, '');
@@ -7,9 +9,15 @@ const normalizeFieldName = (raw) => {
 };
 
 export const parseApiError = (err, fallback = 'Произошла ошибка') => {
+  const tzMessage = mapErrorToTzMessage(err);
   const data = err?.response?.data;
+
   if (!data) {
-    return { message: err?.message || fallback, fields: {}, code: null };
+    return {
+      message: tzMessage || err?.message || fallback,
+      fields: {},
+      code: null,
+    };
   }
 
   const fields = {};
@@ -36,9 +44,8 @@ export const parseApiError = (err, fallback = 'Произошла ошибка')
     }
   }
 
-  const message = messages.length
-    ? messages.join('; ')
-    : (data.message || data.title || fallback);
+  const message = tzMessage
+    || (messages.length ? messages.join('; ') : (data.message || data.title || fallback));
 
   return { message, fields, code: data.code || null };
 };
