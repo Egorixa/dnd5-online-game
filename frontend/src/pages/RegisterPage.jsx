@@ -7,6 +7,9 @@ import { Shield } from 'lucide-react';
 import { registerRequest } from '../api/auth';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import { parseApiError } from '../utils/apiError';
+import { TZ_MESSAGES } from '../utils/errorMessages';
+import useToastStore from '../stores/toastStore';
 
 const schema = yup.object({
   username: yup
@@ -49,7 +52,18 @@ const RegisterPage = () => {
       setSuccess(true);
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      const message = err.response?.data?.message || 'Ошибка регистрации';
+      const parsed = parseApiError(err, 'Ошибка регистрации');
+      const status = err?.response?.status;
+      let message = parsed.message;
+      if (parsed.code === 'USERNAME_TAKEN') {
+        message = TZ_MESSAGES.USERNAME_TAKEN;
+      } else if (status >= 500) {
+        message = TZ_MESSAGES.SERVER_ERROR;
+        useToastStore.getState().error(message);
+      } else if (!err?.response) {
+        message = TZ_MESSAGES.NETWORK_OFFLINE;
+        useToastStore.getState().error(message);
+      }
       setServerError(message);
     } finally {
       setLoading(false);
