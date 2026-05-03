@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Кубики"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Нажмите на кость, чтобы выполнить бросок. Результат будет добавлен в журнал."
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_dice_room_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Режим: локальный"
+        android:textStyle="italic"
+        android:layout_marginBottom="4dp"/>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/sw_dice_hidden"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Скрытый бросок (только мастер увидит)"
+        android:layout_marginBottom="8dp"/>
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="4"
+        android:rowCount="2">
+
+        <Button android:id="@+id/btn_d4"  android:text="d4"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btn_d6"  android:text="d6"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btn_d8"  android:text="d8"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btn_d10" android:text="d10"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btn_d12" android:text="d12"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btn_d20" android:text="d20"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btn_d100" android:text="d100"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+        <Button android:id="@+id/btn_clear_log" android:text="Очистить"
+            android:layout_width="0dp"  android:layout_columnWeight="1" android:layout_margin="4dp"
+            android:layout_height="wrap_content"/>
+    </GridLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Журнал бросков"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_dice_log"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+</LinearLayout>

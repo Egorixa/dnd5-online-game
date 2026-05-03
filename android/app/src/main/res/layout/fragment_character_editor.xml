@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ──────────── Основные сведения ──────────── -->
+        <TextView android:text="Основные сведения" style="@style/HeaderTextStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Имя персонажа">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_char_name"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:maxLength="50"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Имя игрока">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_player_name"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:maxLength="50"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp" android:hint="Раса">
+                <AutoCompleteTextView android:id="@+id/spinner_race"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Класс">
+                <AutoCompleteTextView android:id="@+id/spinner_class"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp" android:hint="Предыстория">
+                <AutoCompleteTextView android:id="@+id/spinner_background"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Мировоззрение">
+                <AutoCompleteTextView android:id="@+id/spinner_alignment"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp" android:hint="Уровень (1–20)">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_level"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="1"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Очки опыта">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_xp"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="0"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <TextView android:id="@+id/tv_proficiency_bonus"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Бонус мастерства: +2"
+            android:textStyle="bold" android:layout_marginTop="8dp"/>
+
+        <!-- ──────────── Характеристики ──────────── -->
+        <TextView android:text="Характеристики" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <GridLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:columnCount="3">
+            <include layout="@layout/item_ability" android:id="@+id/ability_str"
+                android:layout_width="0dp" android:layout_columnWeight="1"/>
+            <include layout="@layout/item_ability" android:id="@+id/ability_dex"
+                android:layout_width="0dp" android:layout_columnWeight="1"/>
+            <include layout="@layout/item_ability" android:id="@+id/ability_con"
+                android:layout_width="0dp" android:layout_columnWeight="1"/>
+            <include layout="@layout/item_ability" android:id="@+id/ability_int"
+                android:layout_width="0dp" android:layout_columnWeight="1"/>
+            <include layout="@layout/item_ability" android:id="@+id/ability_wis"
+                android:layout_width="0dp" android:layout_columnWeight="1"/>
+            <include layout="@layout/item_ability" android:id="@+id/ability_cha"
+                android:layout_width="0dp" android:layout_columnWeight="1"/>
+        </GridLayout>
+
+        <!-- ──────────── Боевые параметры ──────────── -->
+        <TextView android:text="Боевые параметры" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="КД">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_ac"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="10"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Иниц. бонус">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_init_bonus"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="numberSigned" android:text="0"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Скорость">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_speed"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="30"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="HP макс">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_hp_max"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="1"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="HP тек">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_hp_cur"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="1"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="HP врем">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_hp_temp"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="0"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="Кость хитов">
+                <AutoCompleteTextView android:id="@+id/spinner_hit_die"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="none"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Костей текущих">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_hit_die_current"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="number" android:text="1"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <TextView android:id="@+id/tv_hit_die_total"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Костей хитов всего: 1 (по уровню)"
+            android:layout_marginTop="4dp"/>
+
+        <TextView android:id="@+id/tv_initiative_calc"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Итоговая инициатива: +0"
+            android:layout_marginTop="4dp"/>
+
+        <!-- Спасброски от смерти -->
+        <TextView android:text="Спасброски от смерти" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView android:text="Успехи:" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_gravity="center_vertical"/>
+            <CheckBox android:id="@+id/cb_death_succ_1"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <CheckBox android:id="@+id/cb_death_succ_2"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <CheckBox android:id="@+id/cb_death_succ_3"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+            <TextView android:text="Провалы:" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_gravity="center_vertical"/>
+            <CheckBox android:id="@+id/cb_death_fail_1"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <CheckBox android:id="@+id/cb_death_fail_2"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <CheckBox android:id="@+id/cb_death_fail_3"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <CheckBox android:id="@+id/cb_inspiration"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Вдохновение" android:layout_marginTop="8dp"/>
+
+        <!-- ──────────── Спасброски ──────────── -->
+        <TextView android:text="Спасброски (владение)" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:id="@+id/saves_container"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+        <!-- ──────────── Навыки ──────────── -->
+        <TextView android:text="Навыки (владение)" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:id="@+id/skills_container"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+        <!-- ──────────── Снаряжение и валюта ──────────── -->
+        <TextView android:text="Снаряжение" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Снаряжение">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_equipment"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="3" android:gravity="top|start"
+                android:maxLength="2000"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Прочие владения и языки" android:layout_marginTop="8dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_other_proficiencies"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:gravity="top|start"
+                android:maxLength="1000"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView android:text="Валюта" style="@style/HeaderTextStyle"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="ММ">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_cp" android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="СМ">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_sp" android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="ЭМ">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_ep" android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="ЗМ">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_gp" android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="ПМ">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_pp" android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- ──────────── Черты личности и заметки ──────────── -->
+        <TextView android:text="Черты личности и предыстория" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Черты характера">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_personality"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Идеалы">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_ideals"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Привязанности">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_bonds"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Слабости">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_flaws"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Особенности и умения">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_features"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="3" android:maxLength="3000"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Предыстория персонажа">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_backstory"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="3" android:maxLength="3000"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ──────────── Внешность ──────────── -->
+        <TextView android:text="Внешность" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="Возраст">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_age"
+                    android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Рост">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_height"
+                    android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Вес">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_weight"
+                    android:inputType="number" android:text="0"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="Глаза">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_eyes"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:maxLength="30"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Кожа">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_skin"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:maxLength="30"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Волосы">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_hair"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:maxLength="30"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Союзники и организации">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_allies"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Сокровища">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_treasure"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Отличительные черты">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_marks"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:hint="Дополнительные заметки">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_notes"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ──────────── Атаки и заклинания (до 20 строк) ──────────── -->
+        <TextView android:text="Атаки и заклинания (до 20 строк)" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingStart="4dp" android:paddingEnd="4dp">
+            <TextView android:layout_width="0dp" android:layout_weight="3" android:layout_height="wrap_content"
+                android:text="Название" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:text="Бонус" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:layout_width="0dp" android:layout_weight="3" android:layout_height="wrap_content"
+                android:text="Урон/эффект" android:textStyle="bold" android:textSize="12sp"/>
+            <View android:layout_width="32dp" android:layout_height="1dp"/>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/attacks_container"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+        <Button android:id="@+id/btn_add_attack"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="+ Добавить атаку/заклинание"
+            android:layout_marginTop="4dp"/>
+
+        <!-- ──────────── Заклинания ──────────── -->
+        <TextView android:id="@+id/tv_spells_header" android:text="Заклинания"
+            style="@style/HeaderTextStyle" android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:id="@+id/spells_section"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+
+            <TextView android:id="@+id/tv_spell_class_info"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textStyle="bold"/>
+
+            <TextView android:id="@+id/tv_spell_dc_info"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"/>
+
+            <TextView android:id="@+id/tv_spells_list"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Заклинания пока не добавлены"
+                android:textStyle="italic"/>
+        </LinearLayout>
+
+        <Button android:id="@+id/btn_save_char"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="24dp" android:layout_marginBottom="24dp"
+            android:text="Сохранить персонажа"
+            android:backgroundTint="@color/dnd_red"/>
+
+    </LinearLayout>
+</ScrollView>

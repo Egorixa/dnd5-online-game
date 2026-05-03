@@ -1,19 +1,33 @@
+# Android
+*.iml
+.gradle
+/local.properties
+local.properties
+.idea/
+/.idea/assetWizardSettings.xml
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# IDE / editors
 .vs/
+.vscode/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
+*.swp
 
+# Build output
 bin/
 obj/
 
-*.log
+# OS / logs
 .DS_Store
-.idea/
-.vscode/
-*.swp
 *.log
 
+# Frontend
 frontend/node_modules/
 frontend/build/
 frontend/.env.local

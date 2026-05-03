@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="2dp"
+    android:gravity="center_vertical">
+
+    <EditText
+        android:id="@+id/et_attack_name"
+        android:layout_width="0dp"
+        android:layout_weight="3"
+        android:layout_height="wrap_content"
+        android:hint="Название"
+        android:textSize="13sp"
+        android:maxLength="50"/>
+
+    <EditText
+        android:id="@+id/et_attack_bonus"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="+0"
+        android:textSize="13sp"
+        android:layout_marginStart="2dp"
+        android:inputType="numberSigned"/>
+
+    <EditText
+        android:id="@+id/et_attack_damage"
+        android:layout_width="0dp"
+        android:layout_weight="3"
+        android:layout_height="wrap_content"
+        android:hint="1d8+3 руб."
+        android:textSize="13sp"
+        android:layout_marginStart="2dp"/>
+
+    <ImageButton
+        android:id="@+id/btn_remove_attack"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@android:drawable/ic_delete"
+        android:background="?attr/selectableItemBackground"
+        android:contentDescription="Удалить"/>
+</LinearLayout>
