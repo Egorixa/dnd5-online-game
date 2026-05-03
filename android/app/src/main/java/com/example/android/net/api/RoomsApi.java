@@ -21,8 +21,9 @@ public interface RoomsApi {
         public List<RoomDtos.RoomEventDto> events;
     }
 
-    @POST("rooms")
-    Call<RoomDtos.CreateRoomResponse> create(@Body RoomDtos.CreateRoomRequest body);
+    // По ТЗ (3.1, 4.3.4) мобильное приложение — только для игрока.
+    // Создание комнаты, кик и завершение сессии — функции мастера на веб-сайте,
+    // в мобильный клиент не входят.
 
     @GET("rooms/public")
     Call<PublicRoomsResponse> getPublic(@Query("limit") int limit, @Query("offset") int offset);
@@ -32,12 +33,6 @@ public interface RoomsApi {
 
     @POST("rooms/{roomId}/leave")
     Call<Void> leave(@Path("roomId") String roomId);
-
-    @POST("rooms/{roomId}/kick")
-    Call<Void> kick(@Path("roomId") String roomId, @Body RoomDtos.KickParticipantRequest body);
-
-    @POST("rooms/{roomId}/finish")
-    Call<Void> finish(@Path("roomId") String roomId, @Body RoomDtos.FinishRoomRequest body);
 
     @GET("rooms/{roomId}/events")
     Call<RoomEventsResponse> getEvents(@Path("roomId") String roomId,
