@@ -230,23 +230,32 @@
 
         <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <TextView android:text="Успехи:" android:layout_width="wrap_content"
+            <TextView android:text="Успехи:" android:layout_width="80dp"
                 android:layout_height="wrap_content" android:layout_gravity="center_vertical"/>
             <CheckBox android:id="@+id/cb_death_succ_1"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"/>
             <CheckBox android:id="@+id/cb_death_succ_2"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"/>
             <CheckBox android:id="@+id/cb_death_succ_3"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-            <TextView android:text="Провалы:" android:layout_width="wrap_content"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView android:text="Провалы:" android:layout_width="80dp"
                 android:layout_height="wrap_content" android:layout_gravity="center_vertical"/>
             <CheckBox android:id="@+id/cb_death_fail_1"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"/>
             <CheckBox android:id="@+id/cb_death_fail_2"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"/>
             <CheckBox android:id="@+id/cb_death_fail_3"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"/>
         </LinearLayout>
 
         <CheckBox android:id="@+id/cb_inspiration"
