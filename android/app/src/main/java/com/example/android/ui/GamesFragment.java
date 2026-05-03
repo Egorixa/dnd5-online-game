@@ -190,16 +190,32 @@ public class GamesFragment extends Fragment {
             @Override
             public void onResponse(Call<RoomDtos.JoinRoomResponse> call, Response<RoomDtos.JoinRoomResponse> response) {
                 if (!isAdded()) return;
-                if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(getContext(),
-                            ApiErrors.extract(response, "Не удалось присоединиться"),
-                            Toast.LENGTH_LONG).show();
+                if (response.isSuccessful() && response.body() != null) {
+                    RoomDtos.JoinRoomResponse j = response.body();
+                    boolean isMaster = j.role != null
+                            && RoomDtos.ParticipantRole.MASTER.equalsIgnoreCase(j.role);
+                    openRoom(j.roomId, j.roomCode, isMaster);
                     return;
                 }
-                RoomDtos.JoinRoomResponse j = response.body();
-                boolean isMaster = j.role != null
-                        && RoomDtos.ParticipantRole.MASTER.equalsIgnoreCase(j.role);
-                openRoom(j.roomId, j.roomCode, isMaster);
+                // 409 ALREADY_JOINED — пользователь уже в этой комнате (например, после
+                // нажатия "назад" из GameRoomActivity без вызова leave). В этом случае
+                // просто открываем экран комнаты, используя сохранённые ID/код.
+                if (response.code() == 409) {
+                    String roomId = codeToRoomId.get(code);
+                    SessionManager sm = new SessionManager(requireContext());
+                    if (roomId == null) roomId = sm.getActiveRoomId();
+                    if (roomId != null) {
+                        // Узнать роль точно мы здесь не можем, но обычно "уже в комнате"
+                        // означает мастера, который её создал. На всякий случай уточним
+                        // через GET /rooms/{id}/state — но проще довериться флагу из сессии.
+                        boolean isMaster = code.equalsIgnoreCase(sm.getActiveRoomCode());
+                        openRoom(roomId, code, isMaster);
+                        return;
+                    }
+                }
+                Toast.makeText(getContext(),
+                        ApiErrors.extract(response, "Не удалось присоединиться"),
+                        Toast.LENGTH_LONG).show();
             }
 
             @Override

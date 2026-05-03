@@ -17,9 +17,14 @@ import com.example.android.R;
 import com.example.android.data.SessionManager;
 import com.example.android.net.ApiClient;
 import com.example.android.net.ApiErrors;
+import com.example.android.net.api.CharactersApi;
+import com.example.android.net.dto.CharacterDtos;
 import com.example.android.net.dto.RoomDtos;
 import com.example.android.net.realtime.RoomHubClient;
 import com.google.gson.JsonObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,7 +43,10 @@ public class GameRoomActivity extends AppCompatActivity implements RoomHubClient
 
     private TextView tvSyncStatus;
     private TextView tvEventsLog;
+    private TextView tvCharInfo;
     private Button btnFinish;
+    private Button btnSelectCharacter;
+    private String activeCharacterId;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final StringBuilder eventsBuffer = new StringBuilder();
@@ -72,10 +80,13 @@ public class GameRoomActivity extends AppCompatActivity implements RoomHubClient
         TextView tvCode = findViewById(R.id.tv_room_code);
         tvCode.setText("Комната: " + (roomCode != null ? roomCode : "—"));
 
-        TextView tvCharInfo = findViewById(R.id.tv_room_character);
-        tvCharInfo.setText(characterId == -1
-                ? "Персонаж не выбран. Откройте раздел «Персонажи» для выбора."
-                : "Лист персонажа №" + characterId + " активен в режиме игровой сессии.");
+        tvCharInfo = findViewById(R.id.tv_room_character);
+        tvCharInfo.setText("Персонаж не выбран. Нажмите «Выбрать персонажа».");
+
+        btnSelectCharacter = findViewById(R.id.btn_select_character);
+        if (btnSelectCharacter != null) {
+            btnSelectCharacter.setOnClickListener(v -> showSelectCharacterDialog());
+        }
 
         tvSyncStatus = findViewById(R.id.tv_sync_status);
         tvSyncStatus.setText("Статус: ⟳ подключение…");
@@ -94,6 +105,145 @@ public class GameRoomActivity extends AppCompatActivity implements RoomHubClient
         }
 
         startHub();
+        loadActiveCharacter();
+    }
+
+    private void loadActiveCharacter() {
+        if (TextUtils.isEmpty(roomId)) return;
+        ApiClient.get(this).characters().listInRoom(roomId).enqueue(new Callback<CharactersApi.CharactersListResponse>() {
+            @Override
+            public void onResponse(Call<CharactersApi.CharactersListResponse> call,
+                                   Response<CharactersApi.CharactersListResponse> response) {
+                if (!response.isSuccessful() || response.body() == null
+                        || response.body().characters == null
+                        || response.body().characters.isEmpty()) {
+                    return;
+                }
+                CharacterDtos.CharacterResponse c = response.body().characters.get(0);
+                activeCharacterId = c.characterId;
+                tvCharInfo.setText("Активный персонаж: " + (c.name == null ? "(без имени)" : c.name));
+            }
+
+            @Override
+            public void onFailure(Call<CharactersApi.CharactersListResponse> call, Throwable t) { /* ignore */ }
+        });
+    }
+
+    private void showSelectCharacterDialog() {
+        ApiClient.get(this).characters().listTemplates().enqueue(new Callback<CharactersApi.CharactersListResponse>() {
+            @Override
+            public void onResponse(Call<CharactersApi.CharactersListResponse> call,
+                                   Response<CharactersApi.CharactersListResponse> response) {
+                if (!response.isSuccessful() || response.body() == null
+                        || response.body().characters == null
+                        || response.body().characters.isEmpty()) {
+                    Toast.makeText(GameRoomActivity.this,
+                            "Нет шаблонов персонажей. Создайте лист в разделе «Персонажи».",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+                final List<CharacterDtos.CharacterResponse> list =
+                        new ArrayList<>(response.body().characters);
+                CharSequence[] titles = new CharSequence[list.size()];
+                for (int i = 0; i < list.size(); i++) {
+                    CharacterDtos.CharacterResponse c = list.get(i);
+                    String name = c.name == null || c.name.trim().isEmpty() ? "(без имени)" : c.name;
+                    String cls = c.characterClass == null ? "" : (" · " + c.characterClass);
+                    titles[i] = name + cls + " · ур. " + c.level;
+                }
+                new AlertDialog.Builder(GameRoomActivity.this)
+                        .setTitle("Выберите персонажа")
+                        .setItems(titles, (d, which) -> applyTemplateToRoom(list.get(which)))
+                        .setNegativeButton("Отмена", null)
+                        .show();
+            }
+
+            @Override
+            public void onFailure(Call<CharactersApi.CharactersListResponse> call, Throwable t) {
+                Toast.makeText(GameRoomActivity.this,
+                        "Сеть: " + ApiErrors.fromThrowable(t),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void applyTemplateToRoom(CharacterDtos.CharacterResponse template) {
+        if (TextUtils.isEmpty(roomId)) return;
+        CharacterDtos.CharacterUpsertRequest req = templateToUpsert(template);
+        ApiClient.get(this).characters().createInRoom(roomId, req).enqueue(new Callback<CharacterDtos.CharacterResponse>() {
+            @Override
+            public void onResponse(Call<CharacterDtos.CharacterResponse> call,
+                                   Response<CharacterDtos.CharacterResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    activeCharacterId = response.body().characterId;
+                    String name = response.body().name == null ? "(без имени)" : response.body().name;
+                    tvCharInfo.setText("Активный персонаж: " + name);
+                    Toast.makeText(GameRoomActivity.this,
+                            "Персонаж добавлен в комнату",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(GameRoomActivity.this,
+                            ApiErrors.extract(response, "Не удалось добавить персонажа"),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CharacterDtos.CharacterResponse> call, Throwable t) {
+                Toast.makeText(GameRoomActivity.this,
+                        "Сеть: " + ApiErrors.fromThrowable(t),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /** Скопировать поля шаблона в запрос на создание персонажа в комнате. */
+    private static CharacterDtos.CharacterUpsertRequest templateToUpsert(CharacterDtos.CharacterResponse t) {
+        CharacterDtos.CharacterUpsertRequest r = new CharacterDtos.CharacterUpsertRequest();
+        r.name = t.name; r.playerName = t.playerName; r.race = t.race;
+        r.characterClass = t.characterClass; r.level = t.level;
+        r.background = t.background; r.alignment = t.alignment;
+        r.experiencePoints = t.experiencePoints;
+        r.strength = t.strength; r.dexterity = t.dexterity; r.constitution = t.constitution;
+        r.intelligence = t.intelligence; r.wisdom = t.wisdom; r.charisma = t.charisma;
+        r.armorClass = t.armorClass; r.initiativeBonus = t.initiativeBonus; r.speed = t.speed;
+        r.maxHp = t.maxHp; r.currentHp = t.currentHp; r.tempHp = t.tempHp;
+        r.hitDieType = t.hitDieType; r.hitDiceRemaining = t.hitDiceRemaining;
+        r.deathSaveSuccesses = t.deathSaveSuccesses; r.deathSaveFailures = t.deathSaveFailures;
+        r.inspiration = t.inspiration;
+        r.copperPieces = t.copperPieces; r.silverPieces = t.silverPieces;
+        r.electrumPieces = t.electrumPieces; r.goldPieces = t.goldPieces;
+        r.platinumPieces = t.platinumPieces;
+        r.equipment = t.equipment; r.otherProficiencies = t.otherProficiencies;
+        r.characterTraits = t.characterTraits; r.ideals = t.ideals;
+        r.bonds = t.bonds; r.flaws = t.flaws; r.featuresAndTraits = t.featuresAndTraits;
+        r.eyes = t.eyes; r.age = t.age; r.height = t.height; r.weight = t.weight;
+        r.skin = t.skin; r.hair = t.hair;
+        r.alliesAndOrganizations = t.alliesAndOrganizations;
+        r.backstory = t.backstory; r.treasure = t.treasure;
+        r.additionalNotes = t.additionalNotes; r.distinguishingMarks = t.distinguishingMarks;
+        // skills/saves: SkillView/SaveView → ProficiencyLevel.level
+        if (t.skills != null) {
+            java.util.LinkedHashMap<String, String> m = new java.util.LinkedHashMap<>();
+            for (java.util.Map.Entry<String, CharacterDtos.SkillView> e : t.skills.entrySet()) {
+                if (e.getValue() != null) m.put(e.getKey(), e.getValue().level);
+            }
+            r.skillProficiencies = m;
+        }
+        if (t.saves != null) {
+            java.util.LinkedHashMap<String, String> m = new java.util.LinkedHashMap<>();
+            for (java.util.Map.Entry<String, CharacterDtos.SaveView> e : t.saves.entrySet()) {
+                if (e.getValue() != null) m.put(e.getKey(), e.getValue().level);
+            }
+            r.saveProficiencies = m;
+        }
+        r.attacks = t.attacks;
+        r.spellcastingClass = t.spellcastingClass;
+        r.spellSlotsTotal = t.spellSlotsTotal;
+        r.spellSlotsUsed = t.spellSlotsUsed;
+        r.preparedLimit = t.preparedLimit;
+        r.spells = t.spells;
+        return r;
     }
 
     private void startHub() {

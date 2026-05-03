@@ -664,11 +664,12 @@ public class CharacterEditorFragment extends Fragment {
 
         SessionManager session = new SessionManager(requireContext());
         boolean useServer = session.hasServerSession();
-        String activeRoomId = session.getActiveRoomId();
-        boolean inRoom = useServer && !TextUtils.isEmpty(activeRoomId);
 
         if (useServer) {
-            saveToServer(c, session, activeRoomId, inRoom);
+            // Редактор персонажа доступен только из вкладки «Персонажи» —
+            // здесь редактируются всегда шаблоны (templates).
+            // Персонажи в комнате создаются через GameRoomActivity и копируются из шаблонов.
+            saveToServer(c, session, null, false);
         } else {
             saveLocal(c);
             Toast.makeText(getContext(), "Персонаж сохранён локально", Toast.LENGTH_SHORT).show();
