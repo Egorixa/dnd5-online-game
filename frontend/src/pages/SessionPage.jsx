@@ -58,6 +58,11 @@ const SessionPage = () => {
 
   const startResize = (side) => (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    const target = e.currentTarget;
+    if (target && target.setPointerCapture && e.pointerId != null) {
+      try { target.setPointerCapture(e.pointerId); } catch {  }
+    }
     const startX = e.clientX;
     const startLeft = leftW;
     const startRight = rightW;
@@ -74,15 +79,17 @@ const SessionPage = () => {
       }
     };
     const onUp = () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   };
 
   useEffect(() => {
@@ -265,7 +272,7 @@ const SessionPage = () => {
 
       <div
         className="session-grid"
-        style={{ gridTemplateColumns: `${leftW}px 6px 1fr 6px ${rightW}px` }}
+        style={{ gridTemplateColumns: `${leftW}px 28px 1fr 28px ${rightW}px` }}
       >
         <div className="session-col-left">
           <div className="session-left-players">
@@ -287,7 +294,7 @@ const SessionPage = () => {
           </div>
         </div>
 
-        <div className="session-resizer" onMouseDown={startResize('left')} />
+        <div className="session-resizer" onPointerDown={startResize('left')} />
 
         <div className="session-col-center">
           {selectedPlayer ? (
@@ -303,7 +310,7 @@ const SessionPage = () => {
           )}
         </div>
 
-        <div className="session-resizer" onMouseDown={startResize('right')} />
+        <div className="session-resizer" onPointerDown={startResize('right')} />
 
         <div className="session-col-right">
           <DicePanel onRoll={handleDiceRoll} />
