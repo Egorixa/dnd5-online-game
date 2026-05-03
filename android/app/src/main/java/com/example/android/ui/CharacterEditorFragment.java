@@ -41,6 +41,10 @@ import java.util.List;
 public class CharacterEditorFragment extends Fragment {
 
     public static final String ARG_CHARACTER_ID = "character_id";
+
+    public static final String ARG_ROOM_ID = "room_id";
+
+    public static final String ARG_SERVER_CHARACTER_ID = "server_character_id";
     private static final int MAX_ATTACKS = 20;
 
     private static final String[] PROF_LABELS_3 = {"Нет", "Влд", "Комп"};
@@ -95,6 +99,10 @@ public class CharacterEditorFragment extends Fragment {
     @Nullable
     private Character editing;
 
+    private boolean roomMode = false;
+    private String roomModeRoomId = "";
+    private String roomModeCharacterId = "";
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_character_editor, container, false);
@@ -109,19 +117,60 @@ public class CharacterEditorFragment extends Fragment {
         setupListeners();
         setupAttacks(view);
 
-        if (getArguments() != null) {
-            int id = getArguments().getInt(ARG_CHARACTER_ID, -1);
-            if (id != -1) {
-                editing = AppDatabase.getInstance(requireContext())
-                        .characterDao().findById(id);
+        Bundle args = getArguments();
+        roomModeRoomId = args != null ? args.getString(ARG_ROOM_ID, "") : "";
+        roomModeCharacterId = args != null ? args.getString(ARG_SERVER_CHARACTER_ID, "") : "";
+        roomMode = !TextUtils.isEmpty(roomModeRoomId) && !TextUtils.isEmpty(roomModeCharacterId);
+
+        if (roomMode) {
+
+            loadFromRoomServer();
+        } else {
+
+            if (args != null) {
+                int id = args.getInt(ARG_CHARACTER_ID, -1);
+                if (id != -1) {
+                    editing = AppDatabase.getInstance(requireContext())
+                            .characterDao().findById(id);
+                }
             }
-        }
-        if (editing != null) {
-            fillFromCharacter(editing);
+            if (editing != null) {
+                fillFromCharacter(editing);
+            }
         }
         recalcAll();
 
         view.findViewById(R.id.btn_save_char).setOnClickListener(v -> save());
+    }
+
+    private void loadFromRoomServer() {
+        int userId = new SessionManager(requireContext()).getUserId();
+        ApiClient.get(requireContext()).characters()
+                .getInRoom(roomModeRoomId, roomModeCharacterId)
+                .enqueue(new retrofit2.Callback<CharacterDtos.CharacterResponse>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<CharacterDtos.CharacterResponse> call,
+                                           retrofit2.Response<CharacterDtos.CharacterResponse> response) {
+                        if (!isAdded()) return;
+                        if (!response.isSuccessful() || response.body() == null) {
+                            Toast.makeText(getContext(),
+                                    ApiErrors.extract(response, "Не удалось загрузить персонажа"),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        editing = CharacterMapper.fromResponse(response.body(), null, userId);
+                        fillFromCharacter(editing);
+                        recalcAll();
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<CharacterDtos.CharacterResponse> call, Throwable t) {
+                        if (!isAdded()) return;
+                        Toast.makeText(getContext(),
+                                "Сеть: " + ApiErrors.fromThrowable(t, "ошибка"),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void bindViews(View view) {
@@ -642,13 +691,53 @@ public class CharacterEditorFragment extends Fragment {
         SessionManager session = new SessionManager(requireContext());
         boolean useServer = session.hasServerSession();
 
-        if (useServer) {
+        if (roomMode) {
+
+            saveToServerRoomMode(c, session);
+        } else if (useServer) {
 
             saveToServer(c, session, null, false);
         } else {
             saveLocal(c);
             Toast.makeText(getContext(), "Персонаж сохранён локально", Toast.LENGTH_SHORT).show();
+            safePopBackStack();
+        }
+    }
+
+    private void saveToServerRoomMode(Character c, SessionManager session) {
+        CharacterDtos.CharacterUpsertRequest req = CharacterMapper.toUpsert(c);
+        ApiClient.get(requireContext()).characters()
+                .updateInRoom(roomModeRoomId, roomModeCharacterId, req)
+                .enqueue(new retrofit2.Callback<CharacterDtos.CharacterResponse>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<CharacterDtos.CharacterResponse> call,
+                                           retrofit2.Response<CharacterDtos.CharacterResponse> response) {
+                        if (!isAdded()) return;
+                        if (!response.isSuccessful() || response.body() == null) {
+                            Toast.makeText(getContext(),
+                                    ApiErrors.extract(response, "Ошибка сохранения"),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        editing = CharacterMapper.fromResponse(response.body(), editing, session.getUserId());
+                        Toast.makeText(getContext(), "Сохранено", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<CharacterDtos.CharacterResponse> call, Throwable t) {
+                        if (!isAdded()) return;
+                        Toast.makeText(getContext(),
+                                "Сеть: " + ApiErrors.fromThrowable(t, "ошибка"),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void safePopBackStack() {
+        try {
             Navigation.findNavController(requireView()).popBackStack();
+        } catch (IllegalStateException ignored) {
+
         }
     }
 
@@ -697,7 +786,7 @@ public class CharacterEditorFragment extends Fragment {
                 Character merged = CharacterMapper.fromResponse(response.body(), c, session.getUserId());
                 saveLocal(merged);
                 Toast.makeText(getContext(), "Персонаж сохранён на сервере", Toast.LENGTH_SHORT).show();
-                Navigation.findNavController(requireView()).popBackStack();
+                safePopBackStack();
             }
 
             @Override
@@ -708,7 +797,7 @@ public class CharacterEditorFragment extends Fragment {
                 Toast.makeText(getContext(),
                         "Сохранено локально (сеть: " + ApiErrors.fromThrowable(t, "ошибка") + ")",
                         Toast.LENGTH_LONG).show();
-                Navigation.findNavController(requireView()).popBackStack();
+                safePopBackStack();
             }
         });
     }

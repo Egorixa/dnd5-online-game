@@ -1,6 +1,5 @@
 package com.example.android.ui;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -8,8 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,7 +55,6 @@ public class GamesFragment extends Fragment {
 
         TextInputEditText etCode = view.findViewById(R.id.et_room_code);
         Button btnJoin = view.findViewById(R.id.btn_join);
-        Button btnCreate = view.findViewById(R.id.btn_create_room);
 
         btnJoin.setOnClickListener(v -> {
             String code = etCode.getText() != null ? etCode.getText().toString().trim() : "";
@@ -68,8 +64,6 @@ public class GamesFragment extends Fragment {
             }
             joinRoomByCode(code);
         });
-
-        btnCreate.setOnClickListener(v -> showCreateRoomDialog());
 
         RecyclerView rv = view.findViewById(R.id.rv_rooms);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -125,62 +119,6 @@ public class GamesFragment extends Fragment {
         });
     }
 
-    private void showCreateRoomDialog() {
-        if (!isApiAvailable()) {
-            Toast.makeText(getContext(), "Нет авторизации на сервере", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        LinearLayout container = new LinearLayout(requireContext());
-        container.setOrientation(LinearLayout.VERTICAL);
-        int pad = (int) (16 * getResources().getDisplayMetrics().density);
-        container.setPadding(pad, pad, pad, 0);
-        EditText etName = new EditText(requireContext());
-        etName.setHint("Название комнаты");
-        container.addView(etName);
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Новая комната")
-                .setView(container)
-                .setPositiveButton("Создать публичную", (d, w) ->
-                        createRoom(etName.getText().toString().trim(), RoomDtos.AccessMode.PUBLIC))
-                .setNeutralButton("Создать приватную", (d, w) ->
-                        createRoom(etName.getText().toString().trim(), RoomDtos.AccessMode.PRIVATE))
-                .setNegativeButton("Отмена", null)
-                .show();
-    }
-
-    private void createRoom(String name, String accessMode) {
-        if (TextUtils.isEmpty(name)) {
-            Toast.makeText(getContext(), "Введите название", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        RoomDtos.CreateRoomRequest req = new RoomDtos.CreateRoomRequest(name, accessMode);
-        ApiClient.get(requireContext()).rooms().create(req).enqueue(new Callback<RoomDtos.CreateRoomResponse>() {
-            @Override
-            public void onResponse(Call<RoomDtos.CreateRoomResponse> call, Response<RoomDtos.CreateRoomResponse> response) {
-                if (!isAdded()) return;
-                if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(getContext(),
-                            ApiErrors.extract(response, "Не удалось создать комнату"),
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-                RoomDtos.CreateRoomResponse r = response.body();
-                Toast.makeText(getContext(),
-                        "Комната создана. Код: " + r.roomCode, Toast.LENGTH_LONG).show();
-                openRoom(r.roomId, r.roomCode, true);
-            }
-
-            @Override
-            public void onFailure(Call<RoomDtos.CreateRoomResponse> call, Throwable t) {
-                if (!isAdded()) return;
-                Toast.makeText(getContext(),
-                        "Сервер недоступен: " + ApiErrors.fromThrowable(t, "сеть"),
-                        Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
     private void joinRoomByCode(String code) {
         if (!isApiAvailable()) {
             Toast.makeText(getContext(), "Нет авторизации на сервере", Toast.LENGTH_SHORT).show();
@@ -192,9 +130,7 @@ public class GamesFragment extends Fragment {
                 if (!isAdded()) return;
                 if (response.isSuccessful() && response.body() != null) {
                     RoomDtos.JoinRoomResponse j = response.body();
-                    boolean isMaster = j.role != null
-                            && RoomDtos.ParticipantRole.MASTER.equalsIgnoreCase(j.role);
-                    openRoom(j.roomId, j.roomCode, isMaster);
+                    openRoom(j.roomId, j.roomCode);
                     return;
                 }
 
@@ -203,9 +139,7 @@ public class GamesFragment extends Fragment {
                     SessionManager sm = new SessionManager(requireContext());
                     if (roomId == null) roomId = sm.getActiveRoomId();
                     if (roomId != null) {
-
-                        boolean isMaster = code.equalsIgnoreCase(sm.getActiveRoomCode());
-                        openRoom(roomId, code, isMaster);
+                        openRoom(roomId, code);
                         return;
                     }
                 }
@@ -224,12 +158,11 @@ public class GamesFragment extends Fragment {
         });
     }
 
-    private void openRoom(String roomId, String roomCode, boolean isMaster) {
+    private void openRoom(String roomId, String roomCode) {
         new SessionManager(requireContext()).setActiveRoom(roomId, roomCode);
         Intent i = new Intent(requireContext(), GameRoomActivity.class);
         i.putExtra(GameRoomActivity.EXTRA_ROOM_CODE, roomCode);
         i.putExtra(GameRoomActivity.EXTRA_ROOM_ID, roomId);
-        i.putExtra(GameRoomActivity.EXTRA_IS_MASTER, isMaster);
         startActivity(i);
     }
 }

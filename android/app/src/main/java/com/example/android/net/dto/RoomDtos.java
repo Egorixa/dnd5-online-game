@@ -25,24 +25,6 @@ public class RoomDtos {
         private ParticipantRole() {}
     }
 
-    public static class CreateRoomRequest {
-        public String name;
-        public String accessMode;
-
-        public CreateRoomRequest(String name, String accessMode) {
-            this.name = name;
-            this.accessMode = accessMode;
-        }
-    }
-
-    public static class CreateRoomResponse {
-        public String roomId;
-        public String roomCode;
-        public String name;
-        public String accessMode;
-        public String createdAt;
-    }
-
     public static class PublicRoomDto {
         public String roomId;
         public String roomCode;
@@ -78,21 +60,6 @@ public class RoomDtos {
         public String username;
         public String role;
         public String joinedAt;
-    }
-
-    public static class KickParticipantRequest {
-        public String targetUserId;
-        public String targetParticipantId;
-    }
-
-    public static class FinishRoomRequest {
-        public List<String> winners;
-        public List<String> losers;
-
-        public FinishRoomRequest(List<String> winners, List<String> losers) {
-            this.winners = winners;
-            this.losers = losers;
-        }
     }
 
     public static class RoomEventDto {
