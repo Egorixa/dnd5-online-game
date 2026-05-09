@@ -43,7 +43,7 @@ public class GamesFragment extends Fragment {
     private final Map<String, String> codeToRoomId = new HashMap<>();
     private final Map<String, String> codeToMasterId = new HashMap<>();
 
-    private static final long ROOMS_REFRESH_INTERVAL_MS = 5000L;
+    private static final long ROOMS_REFRESH_INTERVAL_MS = 3000L;
     private android.os.Handler refreshHandler;
     private final Runnable refreshTask = new Runnable() {
         @Override public void run() {
@@ -86,12 +86,14 @@ public class GamesFragment extends Fragment {
         rv.setAdapter(adapter);
 
         loadPublicRooms();
+        updateActiveRoomBanner();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         if (isApiAvailable()) loadPublicRooms();
+        updateActiveRoomBanner();
         if (refreshHandler == null) {
             refreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
         }
@@ -105,6 +107,31 @@ public class GamesFragment extends Fragment {
         if (refreshHandler != null) {
             refreshHandler.removeCallbacks(refreshTask);
         }
+    }
+
+    private void updateActiveRoomBanner() {
+        View root = getView();
+        if (root == null) return;
+        View card = root.findViewById(R.id.card_active_room);
+        TextView tvCode = root.findViewById(R.id.tv_active_room_code);
+        if (card == null || tvCode == null) return;
+        SessionManager sm = new SessionManager(requireContext());
+        String roomId = sm.getActiveRoomId();
+        String roomCode = sm.getActiveRoomCode();
+        if (TextUtils.isEmpty(roomId)) {
+            card.setVisibility(View.GONE);
+            return;
+        }
+        card.setVisibility(View.VISIBLE);
+        tvCode.setText("Код: " + (TextUtils.isEmpty(roomCode) ? "—" : roomCode));
+        final String fRoomId = roomId;
+        final String fRoomCode = roomCode;
+        card.setOnClickListener(v -> {
+            Intent i = new Intent(requireContext(), GameRoomActivity.class);
+            i.putExtra(GameRoomActivity.EXTRA_ROOM_ID, fRoomId);
+            i.putExtra(GameRoomActivity.EXTRA_ROOM_CODE, fRoomCode);
+            startActivity(i);
+        });
     }
 
     private boolean isApiAvailable() {
@@ -161,7 +188,25 @@ public class GamesFragment extends Fragment {
             return;
         }
 
-        String myUserId = new SessionManager(requireContext()).getServerUserId();
+        SessionManager sm = new SessionManager(requireContext());
+        String activeRoomId = sm.getActiveRoomId();
+        String activeRoomCode = sm.getActiveRoomCode();
+        String targetRoomId = codeToRoomId.get(code);
+        boolean sameRoom = (!TextUtils.isEmpty(activeRoomCode) && activeRoomCode.equalsIgnoreCase(code))
+                || (!TextUtils.isEmpty(targetRoomId) && !TextUtils.isEmpty(activeRoomId)
+                        && targetRoomId.equals(activeRoomId));
+        if (!TextUtils.isEmpty(activeRoomId) && !sameRoom) {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Вы уже в комнате")
+                    .setMessage("Сначала выйдите из текущей комнаты (код "
+                            + (TextUtils.isEmpty(activeRoomCode) ? "—" : activeRoomCode)
+                            + "), чтобы присоединиться к другой.")
+                    .setPositiveButton("OK", null)
+                    .show();
+            return;
+        }
+
+        String myUserId = sm.getServerUserId();
         String masterIdHint = codeToMasterId.get(code);
         if (myUserId != null && !myUserId.isEmpty()
                 && masterIdHint != null && myUserId.equals(masterIdHint)) {
@@ -249,27 +294,7 @@ public class GamesFragment extends Fragment {
 
     private void promptCharacterAndOpen(String roomId, String roomCode) {
         if (!isAdded()) return;
-        ApiClient.get(requireContext()).characters().listInRoom(roomId)
-                .enqueue(new Callback<CharactersApi.CharactersListResponse>() {
-                    @Override
-                    public void onResponse(Call<CharactersApi.CharactersListResponse> call,
-                                           Response<CharactersApi.CharactersListResponse> response) {
-                        if (!isAdded()) return;
-                        if (response.isSuccessful() && response.body() != null
-                                && response.body().characters != null
-                                && !response.body().characters.isEmpty()) {
-                            openRoom(roomId, roomCode);
-                            return;
-                        }
-                        showTemplatePicker(roomId, roomCode);
-                    }
-
-                    @Override
-                    public void onFailure(Call<CharactersApi.CharactersListResponse> call, Throwable t) {
-                        if (!isAdded()) return;
-                        showTemplatePicker(roomId, roomCode);
-                    }
-                });
+        showTemplatePicker(roomId, roomCode);
     }
 
     private void showTemplatePicker(String roomId, String roomCode) {
@@ -296,8 +321,13 @@ public class GamesFragment extends Fragment {
                         for (int i = 0; i < list.size(); i++) {
                             CharacterDtos.CharacterResponse c = list.get(i);
                             String name = c.name == null || c.name.trim().isEmpty() ? "(без имени)" : c.name;
-                            String cls = c.characterClass == null ? "" : (" · " + c.characterClass);
-                            titles[i] = name + cls + " · ур. " + c.level;
+                            String clsRu = com.example.android.net.mapper.CharacterMapper.classFromKey(c.characterClass);
+                            String raceRu = com.example.android.net.mapper.CharacterMapper.raceFromKey(c.race);
+                            StringBuilder sb = new StringBuilder(name);
+                            if (raceRu != null && !raceRu.isEmpty()) sb.append(" · ").append(raceRu);
+                            if (clsRu != null && !clsRu.isEmpty()) sb.append(" · ").append(clsRu);
+                            sb.append(" · ур. ").append(c.level);
+                            titles[i] = sb.toString();
                         }
                         new AlertDialog.Builder(requireContext())
                                 .setTitle("Выберите персонажа для входа")

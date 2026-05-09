@@ -226,8 +226,13 @@ public class GameRoomActivity extends AppCompatActivity
                         for (int i = 0; i < list.size(); i++) {
                             CharacterDtos.CharacterResponse c = list.get(i);
                             String name = c.name == null || c.name.trim().isEmpty() ? "(без имени)" : c.name;
-                            String cls = c.characterClass == null ? "" : (" · " + c.characterClass);
-                            titles[i] = name + cls + " · ур. " + c.level;
+                            String clsRu = com.example.android.net.mapper.CharacterMapper.classFromKey(c.characterClass);
+                            String raceRu = com.example.android.net.mapper.CharacterMapper.raceFromKey(c.race);
+                            StringBuilder sb = new StringBuilder(name);
+                            if (raceRu != null && !raceRu.isEmpty()) sb.append(" · ").append(raceRu);
+                            if (clsRu != null && !clsRu.isEmpty()) sb.append(" · ").append(clsRu);
+                            sb.append(" · ур. ").append(c.level);
+                            titles[i] = sb.toString();
                         }
                         new AlertDialog.Builder(GameRoomActivity.this)
                                 .setTitle("Выберите персонажа")
