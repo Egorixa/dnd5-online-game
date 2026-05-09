@@ -447,20 +447,76 @@ public class GameRoomActivity extends AppCompatActivity
 
     @Override
     public void onCharacterUpdated(JsonObject payload) {
-        mainHandler.post(() -> postEvent("Персонаж обновлён"));
+        mainHandler.post(() -> {
+            String who = extractCharacterOwnerLabel(payload);
+            postEvent("✏ Лист обновлён: " + who);
+        });
     }
 
     @Override
     public void onDiceRolled(JsonObject payload) {
         mainHandler.post(() -> {
-            String kind = payload.has("kind") && !payload.get("kind").isJsonNull()
-                    ? payload.get("kind").getAsString() : "?";
-            String result = payload.has("result") && !payload.get("result").isJsonNull()
-                    ? payload.get("result").getAsString() : "?";
-            String userName = payload.has("userName") && !payload.get("userName").isJsonNull()
-                    ? payload.get("userName").getAsString() : "?";
-            postEvent("🎲 " + userName + ": " + kind + " = " + result);
+            String dice = readString(payload, "dice", "kind");
+            if (dice == null || dice.isEmpty() || "?".equals(dice)) dice = "d?";
+
+            String resultStr = readString(payload, "result");
+            String totalStr = readString(payload, "total");
+            String magic = readString(payload, "magicBallAnswer");
+
+            String userLabel = extractDiceUserLabel(payload);
+
+            StringBuilder line = new StringBuilder("🎲 ").append(userLabel).append(": ");
+            if (magic != null && !magic.isEmpty()) {
+                line.append("шар → ").append(magic);
+            } else {
+                line.append(dice);
+                if (resultStr != null) line.append(" = ").append(resultStr);
+                if (totalStr != null && !totalStr.equals(resultStr)) {
+                    line.append(" (итого ").append(totalStr).append(")");
+                }
+            }
+            postEvent(line.toString());
         });
+    }
+
+    @Nullable
+    private static String readString(JsonObject payload, String... keys) {
+        if (payload == null) return null;
+        for (String key : keys) {
+            if (payload.has(key) && !payload.get(key).isJsonNull()) {
+                JsonElement el = payload.get(key);
+                if (el.isJsonPrimitive()) {
+                    String v = el.getAsString();
+                    if (v != null && !v.isEmpty()) return v;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String extractDiceUserLabel(JsonObject payload) {
+        String name = readString(payload, "userName", "playerName", "characterName");
+        if (name != null) return name;
+        String actor = readString(payload, "actorUserId", "userId");
+        if (actor != null) {
+            String me = session != null ? session.getServerUserId() : null;
+            if (actor.equalsIgnoreCase(me)) return "Вы";
+            return "Игрок " + actor.substring(0, Math.min(6, actor.length()));
+        }
+        return "Игрок";
+    }
+
+    private String extractCharacterOwnerLabel(JsonObject payload) {
+        if (payload == null) return "персонаж";
+        String name = readString(payload, "characterName", "name");
+        if (name != null) return name;
+        String owner = readString(payload, "ownerUserId", "userId");
+        if (owner != null) {
+            String me = session != null ? session.getServerUserId() : null;
+            if (owner.equalsIgnoreCase(me)) return "ваш лист";
+            return "лист игрока " + owner.substring(0, Math.min(6, owner.length()));
+        }
+        return "персонаж";
     }
 
     @Override

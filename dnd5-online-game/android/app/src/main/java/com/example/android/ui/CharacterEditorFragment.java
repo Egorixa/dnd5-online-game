@@ -141,6 +141,17 @@ public class CharacterEditorFragment extends Fragment {
         recalcAll();
 
         view.findViewById(R.id.btn_save_char).setOnClickListener(v -> save());
+
+        View btnSync = view.findViewById(R.id.btn_sync_char);
+        if (btnSync != null) {
+            btnSync.setVisibility(roomMode ? View.VISIBLE : View.GONE);
+            btnSync.setOnClickListener(v -> {
+                if (roomMode) {
+                    Toast.makeText(getContext(), "Загружаю с сервера…", Toast.LENGTH_SHORT).show();
+                    loadFromRoomServer();
+                }
+            });
+        }
     }
 
     private void loadFromRoomServer() {

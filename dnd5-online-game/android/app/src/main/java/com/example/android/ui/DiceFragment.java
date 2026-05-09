@@ -124,10 +124,11 @@ public class DiceFragment extends Fragment {
         String roomId = session.getActiveRoomId();
         String roomCode = session.getActiveRoomCode();
         if (!TextUtils.isEmpty(roomId)) {
-            tvStatus.setText("Режим: комната " + (TextUtils.isEmpty(roomCode) ? "—" : roomCode));
+            String code = TextUtils.isEmpty(roomCode) ? "—" : roomCode;
+            tvStatus.setText("Комната " + code + " · бросок виден всем");
             swHidden.setVisibility(View.VISIBLE);
         } else {
-            tvStatus.setText("Режим: локальный (нет активной комнаты)");
+            tvStatus.setText("Локальный режим · бросок только для вас");
             swHidden.setVisibility(View.GONE);
         }
     }
@@ -141,9 +142,15 @@ public class DiceFragment extends Fragment {
         }
     }
 
+    private String selfLabel() {
+        if (session == null) return "Вы";
+        String name = session.getUsername();
+        return TextUtils.isEmpty(name) ? "Вы" : name;
+    }
+
     private void rollLocal(int sides) {
         int result = 1 + random.nextInt(sides);
-        appendLog(tf.format(new Date()) + "  d" + sides + " → " + result);
+        appendLog(tf.format(new Date()) + "  " + selfLabel() + ": d" + sides + " → " + result);
     }
 
     private void shakeMagicBall() {
@@ -173,8 +180,10 @@ public class DiceFragment extends Fragment {
                             return;
                         }
                         DiceDtos.DiceRollResponse r = response.body();
+                        String diceLabel = (r.dice != null && r.dice.startsWith("d")) ? r.dice : kind;
                         StringBuilder line = new StringBuilder(tf.format(new Date()))
-                                .append("  ").append(r.dice == null ? kind : r.dice);
+                                .append("  ").append(selfLabel())
+                                .append(": ").append(diceLabel);
                         if (r.result != null) {
                             line.append(" → ").append(r.result);
                         }
