@@ -2,6 +2,15 @@ import React from 'react';
 import { SKILLS } from '../../constants/skills';
 import { getSkillBonus, formatModifier } from '../../utils/calculations';
 
+const ABILITY_ABBR_RU = {
+  strength: 'СИЛ',
+  dexterity: 'ЛОВ',
+  constitution: 'ТЕЛ',
+  intelligence: 'ИНТ',
+  wisdom: 'МДР',
+  charisma: 'ХАР',
+};
+
 const Skills = ({ data, onChange }) => {
   const skills = data.skills || {};
 
@@ -29,7 +38,7 @@ const Skills = ({ data, onChange }) => {
                 />
                 <span className="check-bonus">{formatModifier(bonus)}</span>
                 <span className="check-name">{skill.label}</span>
-                <span className="check-ability">({skill.ability.slice(0, 3).toUpperCase()})</span>
+                <span className="check-ability">({ABILITY_ABBR_RU[skill.ability] || skill.ability})</span>
               </label>
             </div>
           );

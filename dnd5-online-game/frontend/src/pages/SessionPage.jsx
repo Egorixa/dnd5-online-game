@@ -317,6 +317,137 @@ const SessionPage = () => {
     }
   };
 
+  const findCharacterIdFor = (participantId) => {
+    const p = participants.find((x) => x.participantId === participantId);
+    return { participant: p, characterId: p ? characters[p.userId]?.characterId : null };
+  };
+
+  const replaceLocalAttack = (userId, attack) => {
+    setCharacters((prev) => {
+      const cur = prev[userId];
+      if (!cur) return prev;
+      const list = (cur.attacks || []).slice();
+      const idx = list.findIndex((a) => a.attackId === attack.attackId);
+      if (idx === -1) list.push(attack); else list[idx] = attack;
+      return { ...prev, [userId]: { ...cur, attacks: list } };
+    });
+  };
+
+  const removeLocalAttack = (userId, attackId) => {
+    setCharacters((prev) => {
+      const cur = prev[userId];
+      if (!cur) return prev;
+      return { ...prev, [userId]: { ...cur, attacks: (cur.attacks || []).filter((a) => a.attackId !== attackId) } };
+    });
+  };
+
+  const handleAddAttack = async (participantId, attack) => {
+    const { participant, characterId } = findCharacterIdFor(participantId);
+    if (!participant || !characterId) return null;
+    try {
+      const { data } = await charactersApi.addAttack(roomId, characterId, {
+        name: attack?.name || '',
+        attackBonus: attack?.attackBonus ?? 0,
+        damage: attack?.damage || '',
+      });
+      replaceLocalAttack(participant.userId, data);
+      return data;
+    } catch (err) {
+      useToastStore.getState().error(extractApiError(err) || 'Не удалось добавить атаку');
+      return null;
+    }
+  };
+
+  const handleUpdateAttack = async (participantId, attackId, attack) => {
+    const { participant, characterId } = findCharacterIdFor(participantId);
+    if (!participant || !characterId || !attackId) return;
+    const prev = characters[participant.userId]?.attacks?.find((a) => a.attackId === attackId);
+    replaceLocalAttack(participant.userId, { attackId, ...attack });
+    try {
+      const { data } = await charactersApi.updateAttackApi(roomId, characterId, attackId, {
+        name: attack?.name || '',
+        attackBonus: attack?.attackBonus ?? 0,
+        damage: attack?.damage || '',
+      });
+      replaceLocalAttack(participant.userId, data);
+    } catch (err) {
+      if (prev) replaceLocalAttack(participant.userId, prev);
+      useToastStore.getState().error(extractApiError(err) || 'Не удалось обновить атаку');
+    }
+  };
+
+  const handleRemoveAttack = async (participantId, attackId) => {
+    const { participant, characterId } = findCharacterIdFor(participantId);
+    if (!participant || !characterId || !attackId) return;
+    const prev = characters[participant.userId]?.attacks?.find((a) => a.attackId === attackId);
+    removeLocalAttack(participant.userId, attackId);
+    try {
+      await charactersApi.deleteAttackApi(roomId, characterId, attackId);
+    } catch (err) {
+      if (prev) replaceLocalAttack(participant.userId, prev);
+      useToastStore.getState().error(extractApiError(err) || 'Не удалось удалить атаку');
+    }
+  };
+
+  const replaceLocalSpell = (userId, spell) => {
+    setCharacters((prev) => {
+      const cur = prev[userId];
+      if (!cur) return prev;
+      const list = (cur.spells || []).slice();
+      const idx = list.findIndex((s) => s.spellId === spell.spellId);
+      if (idx === -1) list.push(spell); else list[idx] = spell;
+      return { ...prev, [userId]: { ...cur, spells: list } };
+    });
+  };
+
+  const removeLocalSpell = (userId, spellId) => {
+    setCharacters((prev) => {
+      const cur = prev[userId];
+      if (!cur) return prev;
+      return { ...prev, [userId]: { ...cur, spells: (cur.spells || []).filter((s) => s.spellId !== spellId) } };
+    });
+  };
+
+  const handleAddSpell = async (participantId, spell) => {
+    const { participant, characterId } = findCharacterIdFor(participantId);
+    if (!participant || !characterId) return null;
+    try {
+      const { data } = await charactersApi.addSpell(roomId, characterId, spell || { name: '', level: 0 });
+      replaceLocalSpell(participant.userId, data);
+      return data;
+    } catch (err) {
+      useToastStore.getState().error(extractApiError(err) || 'Не удалось добавить заклинание');
+      return null;
+    }
+  };
+
+  const handleUpdateSpell = async (participantId, spellId, spell) => {
+    const { participant, characterId } = findCharacterIdFor(participantId);
+    if (!participant || !characterId || !spellId) return;
+    const prev = characters[participant.userId]?.spells?.find((s) => s.spellId === spellId);
+    replaceLocalSpell(participant.userId, { spellId, ...spell });
+    try {
+      const { data } = await charactersApi.updateSpellApi(roomId, characterId, spellId, spell);
+      replaceLocalSpell(participant.userId, data);
+    } catch (err) {
+      if (prev) replaceLocalSpell(participant.userId, prev);
+      useToastStore.getState().error(extractApiError(err) || 'Не удалось обновить заклинание');
+    }
+  };
+
+  const handleRemoveSpell = async (participantId, spellId) => {
+    const { participant, characterId } = findCharacterIdFor(participantId);
+    if (!participant || !characterId || !spellId) return;
+    const prev = characters[participant.userId]?.spells?.find((s) => s.spellId === spellId);
+    removeLocalSpell(participant.userId, spellId);
+    try {
+      await charactersApi.deleteSpellApi(roomId, characterId, spellId);
+    } catch (err) {
+      if (prev) replaceLocalSpell(participant.userId, prev);
+      useToastStore.getState().error(extractApiError(err) || 'Не удалось удалить заклинание');
+    }
+  };
+
   const handleAttackRoll = ({ player, attack, d20, bonus, attackTotal, damage }) => {
     const bonusStr = bonus >= 0 ? `+${bonus}` : `${bonus}`;
     let text = `${player.characterName || 'Игрок'} — ${attack.name || 'атака'}: d20(${d20})${bonusStr} = ${attackTotal}`;
@@ -429,6 +560,12 @@ const SessionPage = () => {
               player={selectedPlayer}
               onUpdate={handleCharacterUpdate}
               onAttackRoll={handleAttackRoll}
+              onAddAttack={handleAddAttack}
+              onUpdateAttack={handleUpdateAttack}
+              onRemoveAttack={handleRemoveAttack}
+              onAddSpell={handleAddSpell}
+              onUpdateSpell={handleUpdateSpell}
+              onRemoveSpell={handleRemoveSpell}
             />
           ) : (
             <div className="session-no-selection">

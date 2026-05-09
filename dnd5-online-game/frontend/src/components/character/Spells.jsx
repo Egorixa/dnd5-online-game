@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { canCastSpells, getSpellAbility, getSpellSaveDC, getSpellAttackBonus, formatModifier } from '../../utils/calculations';
 
-const Spells = ({ data, onChange }) => {
+const SPELL_DEBOUNCE_MS = 500;
+const SPELL_TEMPLATE = {
+  name: '', level: 0, school: '', castingTime: '', range: '',
+  components: '', duration: '', description: '', prepared: false,
+};
+
+const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, playerId }) => {
   const classValue = data.class;
+  const timersRef = useRef(new Map());
+
+  useEffect(() => () => {
+    timersRef.current.forEach((t) => clearTimeout(t));
+    timersRef.current.clear();
+  }, []);
+
   if (!canCastSpells(classValue)) return null;
 
   const spellAbility = getSpellAbility(classValue);
@@ -15,21 +28,48 @@ const Spells = ({ data, onChange }) => {
   const spells = data.spells || [];
   const spellSlots = data.spellSlots || {};
 
-  const addSpell = () => {
+  const addSpell = async () => {
     if (spells.length >= 100) return;
-    onChange({
-      ...data,
-      spells: [...spells, { name: '', level: 0, school: '', castingTime: '', range: '', components: '', duration: '', description: '', prepared: false }],
-    });
+    if (onAddSpell) {
+      await onAddSpell(playerId, { ...SPELL_TEMPLATE });
+      return;
+    }
+    onChange({ ...data, spells: [...spells, { ...SPELL_TEMPLATE }] });
   };
 
-  const removeSpell = (index) => {
+  const removeSpell = async (index) => {
+    const target = spells[index];
+    if (target?.spellId && onRemoveSpell) {
+      const t = timersRef.current.get(target.spellId);
+      if (t) { clearTimeout(t); timersRef.current.delete(target.spellId); }
+      await onRemoveSpell(playerId, target.spellId);
+      return;
+    }
     onChange({ ...data, spells: spells.filter((_, i) => i !== index) });
   };
 
   const updateSpell = (index, field, value) => {
     const updated = spells.map((s, i) => i === index ? { ...s, [field]: value } : s);
     onChange({ ...data, spells: updated });
+    const target = updated[index];
+    if (!target?.spellId || !onUpdateSpell) return;
+    const existing = timersRef.current.get(target.spellId);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      timersRef.current.delete(target.spellId);
+      onUpdateSpell(playerId, target.spellId, {
+        name: target.name || '',
+        level: target.level ?? 0,
+        school: target.school || '',
+        castingTime: target.castingTime || '',
+        range: target.range || '',
+        components: target.components || '',
+        duration: target.duration || '',
+        description: target.description || '',
+        prepared: !!target.prepared,
+      });
+    }, SPELL_DEBOUNCE_MS);
+    timersRef.current.set(target.spellId, timer);
   };
 
   const updateSlot = (lvl, field, value) => {

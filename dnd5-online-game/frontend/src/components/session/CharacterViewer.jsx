@@ -36,10 +36,12 @@ const toData = (player) => ({
   playerName: player.username ?? player.playerName ?? '',
   class: player.class ?? player.characterClass ?? '',
   attacks: (player.attacks || []).map((a) => ({
+    attackId: a.attackId,
     name: a.name || '',
     attackBonus: a.attackBonus ?? a.bonus ?? 0,
     damage: a.damage || '',
   })),
+  spells: player.spells || [],
 });
 
 const fromData = (data) => ({
@@ -47,18 +49,48 @@ const fromData = (data) => ({
   characterName: data.name,
   username: data.playerName,
   characterClass: data.class,
-  attacks: (data.attacks || []).map((a) => ({
-    name: a.name || '',
-    bonus: a.attackBonus ?? 0,
-    attackBonus: a.attackBonus ?? 0,
-    damage: a.damage || '',
-  })),
 });
 
 const DEBOUNCE_MS = 400;
 
-const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
+const ATTACK_DEBOUNCE_MS = 500;
+const NOTES_STORAGE_KEY = 'dnd_master_notes';
+
+const readNotes = (charId) => {
+  if (!charId) return '';
+  try {
+    const map = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '{}');
+    return map[charId] || '';
+  } catch { return ''; }
+};
+
+const writeNotes = (charId, value) => {
+  if (!charId) return;
+  try {
+    const map = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '{}');
+    if (value) map[charId] = value;
+    else delete map[charId];
+    localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
+};
+
+const CharacterViewer = ({
+  player, onUpdate, onAttackRoll,
+  onAddAttack, onUpdateAttack, onRemoveAttack,
+  onAddSpell, onUpdateSpell, onRemoveSpell,
+}) => {
   const [data, setData] = useState(() => toData(player));
+  const [masterNotes, setMasterNotes] = useState(() => readNotes(player?.characterId));
+
+  useEffect(() => {
+    setMasterNotes(readNotes(player?.characterId));
+  }, [player?.characterId]);
+
+  const handleMasterNotesChange = (val) => {
+    setMasterNotes(val);
+    writeNotes(player?.characterId, val);
+  };
+
   const dirtyRef = useRef(false);
   const debounceRef = useRef(null);
   const editSeqRef = useRef(0);
@@ -98,17 +130,54 @@ const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
   };
 
   const attacks = data.attacks;
-  const addAttack = () => {
+  const attackTimersRef = useRef(new Map());
+
+  const addAttack = async () => {
     if (attacks.length >= 20) return;
-    handleChange({ ...data, attacks: [...attacks, { name: '', attackBonus: 0, damage: '' }] });
+    const created = onAddAttack ? await onAddAttack(player.id, { name: '', attackBonus: 0, damage: '' }) : null;
+    if (created) {
+      setData((prev) => ({ ...prev, attacks: [...(prev.attacks || []), {
+        attackId: created.attackId,
+        name: created.name || '',
+        attackBonus: created.attackBonus ?? 0,
+        damage: created.damage || '',
+      }] }));
+    }
   };
-  const removeAttack = (i) => {
-    handleChange({ ...data, attacks: attacks.filter((_, idx) => idx !== i) });
+
+  const removeAttack = async (i) => {
+    const target = attacks[i];
+    setData((prev) => ({ ...prev, attacks: (prev.attacks || []).filter((_, idx) => idx !== i) }));
+    if (target?.attackId && onRemoveAttack) {
+      const t = attackTimersRef.current.get(target.attackId);
+      if (t) clearTimeout(t);
+      attackTimersRef.current.delete(target.attackId);
+      await onRemoveAttack(player.id, target.attackId);
+    }
   };
+
   const updateAttack = (i, patch) => {
     const next = attacks.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
-    handleChange({ ...data, attacks: next });
+    setData((prev) => ({ ...prev, attacks: next }));
+    const target = next[i];
+    if (!target?.attackId || !onUpdateAttack) return;
+    const existing = attackTimersRef.current.get(target.attackId);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      attackTimersRef.current.delete(target.attackId);
+      onUpdateAttack(player.id, target.attackId, {
+        name: target.name || '',
+        attackBonus: target.attackBonus ?? 0,
+        damage: target.damage || '',
+      });
+    }, ATTACK_DEBOUNCE_MS);
+    attackTimersRef.current.set(target.attackId, timer);
   };
+
+  useEffect(() => () => {
+    attackTimersRef.current.forEach((t) => clearTimeout(t));
+    attackTimersRef.current.clear();
+  }, []);
 
   const rollAttack = (atk) => {
     const d20 = rollD20();
@@ -215,20 +284,28 @@ const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
         )}
       </div>
 
-      <Spells data={data} onChange={handleChange} />
+      <Spells
+        data={data}
+        onChange={handleChange}
+        playerId={player.id}
+        onAddSpell={onAddSpell}
+        onUpdateSpell={onUpdateSpell}
+        onRemoveSpell={onRemoveSpell}
+      />
       <Equipment data={data} onChange={handleChange} />
       <PersonalityTraits data={data} onChange={handleChange} />
       <Appearance data={data} onChange={handleChange} />
 
       <div className="sheet-section">
         <h3 className="section-title">Заметки мастера</h3>
+        <p className="section-hint">Видны только вам, не уходят на сервер.</p>
         <textarea
           className="form-textarea"
           rows={3}
           maxLength={2000}
-          value={data.notes || ''}
+          value={masterNotes}
           placeholder="Заметки мастера..."
-          onChange={(e) => handleChange({ ...data, notes: e.target.value })}
+          onChange={(e) => handleMasterNotesChange(e.target.value)}
         />
       </div>
     </div>
