@@ -204,6 +204,7 @@ namespace Rooms.Application.Services
             {
                 participantId = participant.ParticipantId,
                 userId,
+                username = await _users.GetUsernameAsync(userId, ct),
                 role = participant.Role.ToString(),
                 joinedAt = participant.JoinedAt
             }, ct);
@@ -246,6 +247,7 @@ namespace Rooms.Application.Services
             {
                 participantId = info.Participant.ParticipantId,
                 userId,
+                username = await _users.GetUsernameAsync(userId, ct),
                 wasMaster = info.IsMaster
             }, ct);
 
@@ -298,6 +300,7 @@ namespace Rooms.Application.Services
             {
                 participantId = target.ParticipantId,
                 userId = target.UserId,
+                username = await _users.GetUsernameAsync(target.UserId, ct),
                 kicked = true
             }, ct);
         }
