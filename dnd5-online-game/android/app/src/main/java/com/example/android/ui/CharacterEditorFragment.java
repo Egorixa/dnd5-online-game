@@ -152,6 +152,30 @@ public class CharacterEditorFragment extends Fragment {
                 }
             });
         }
+
+
+        if (roomMode) {
+            lockRaceClassFields();
+        }
+    }
+
+    private void lockRaceClassFields() {
+
+        if (spinnerRace != null) {
+            spinnerRace.setEnabled(false);
+            spinnerRace.setFocusable(false);
+            spinnerRace.setClickable(false);
+        }
+        if (spinnerClass != null) {
+            spinnerClass.setEnabled(false);
+            spinnerClass.setFocusable(false);
+            spinnerClass.setClickable(false);
+        }
+    }
+
+    public void reloadFromServerIfRoomMode() {
+        if (!isAdded() || !roomMode) return;
+        loadFromRoomServer();
     }
 
     private void loadFromRoomServer() {

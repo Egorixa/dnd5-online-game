@@ -41,6 +41,7 @@ public class GamesFragment extends Fragment {
 
     private RoomAdapter adapter;
     private final Map<String, String> codeToRoomId = new HashMap<>();
+    private final Map<String, String> codeToMasterId = new HashMap<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -101,9 +102,17 @@ public class GamesFragment extends Fragment {
                     return;
                 }
                 codeToRoomId.clear();
+                codeToMasterId.clear();
+                String myUserId = new SessionManager(requireContext()).getServerUserId();
                 List<Room> ui = new ArrayList<>();
                 for (RoomDtos.PublicRoomDto r : response.body().rooms) {
+                    if (myUserId != null && !myUserId.isEmpty()
+                            && r.masterId != null && myUserId.equals(r.masterId)) {
+
+                        continue;
+                    }
                     codeToRoomId.put(r.roomCode, r.roomId);
+                    if (r.masterId != null) codeToMasterId.put(r.roomCode, r.masterId);
                     ui.add(new Room(r.roomCode,
                             (r.masterUsername == null ? "" : r.masterUsername) + " · " + (r.name == null ? "" : r.name),
                             r.playersCount, 8, true));
@@ -126,12 +135,29 @@ public class GamesFragment extends Fragment {
             Toast.makeText(getContext(), "Нет авторизации на сервере", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        String myUserId = new SessionManager(requireContext()).getServerUserId();
+        String masterIdHint = codeToMasterId.get(code);
+        if (myUserId != null && !myUserId.isEmpty()
+                && masterIdHint != null && myUserId.equals(masterIdHint)) {
+            Toast.makeText(getContext(),
+                    "Вы мастер этой комнаты — войдите в неё через раздел «Мои комнаты» на веб-клиенте, либо создайте отдельный аккаунт игрока.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
         ApiClient.get(requireContext()).rooms().join(code).enqueue(new Callback<RoomDtos.JoinRoomResponse>() {
             @Override
             public void onResponse(Call<RoomDtos.JoinRoomResponse> call, Response<RoomDtos.JoinRoomResponse> response) {
                 if (!isAdded()) return;
                 if (response.isSuccessful() && response.body() != null) {
                     RoomDtos.JoinRoomResponse j = response.body();
+                    if (RoomDtos.ParticipantRole.MASTER.equalsIgnoreCase(j.role)) {
+
+                        Toast.makeText(getContext(),
+                                "Вы мастер этой комнаты. Зайти игроком в собственную комнату нельзя.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
                     promptCharacterAndOpen(j.roomId, j.roomCode);
                     return;
                 }

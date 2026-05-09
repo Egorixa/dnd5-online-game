@@ -19,6 +19,7 @@ import com.example.android.net.ApiErrors;
 import com.example.android.net.api.CharactersApi;
 import com.example.android.net.dto.CharacterDtos;
 import com.example.android.net.realtime.RoomHubClient;
+import com.example.android.util.NotificationHelper;
 import com.google.android.material.tabs.TabLayout;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -450,6 +451,21 @@ public class GameRoomActivity extends AppCompatActivity
         mainHandler.post(() -> {
             String who = extractCharacterOwnerLabel(payload);
             postEvent("✏ Лист обновлён: " + who);
+
+            String me = session != null ? session.getServerUserId() : null;
+            String owner = readString(payload, "ownerUserId", "userId");
+            boolean mySheet = me != null && owner != null && me.equalsIgnoreCase(owner);
+
+            Fragment sheet = getSupportFragmentManager().findFragmentByTag(TAG_SHEET);
+            if (sheet instanceof CharacterEditorFragment && mySheet) {
+                ((CharacterEditorFragment) sheet).reloadFromServerIfRoomMode();
+                Toast.makeText(this, "Мастер обновил ваш лист", Toast.LENGTH_SHORT).show();
+            }
+            if (mySheet) {
+                NotificationHelper.notifyCharacterUpdated(
+                        getApplicationContext(),
+                        "Мастер изменил ваш лист персонажа");
+            }
         });
     }
 
@@ -457,6 +473,27 @@ public class GameRoomActivity extends AppCompatActivity
     public void onDiceRolled(JsonObject payload) {
         mainHandler.post(() -> {
             String dice = readString(payload, "dice", "kind");
+
+            if (dice == null && payload != null) {
+                for (String key : new String[]{"dice", "kind"}) {
+                    if (payload.has(key) && !payload.get(key).isJsonNull()) {
+                        JsonElement el = payload.get(key);
+                        if (el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber()) {
+                            dice = mapDiceKindIndex(el.getAsInt());
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (dice != null) {
+                try {
+                    int idx = Integer.parseInt(dice);
+                    dice = mapDiceKindIndex(idx);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
             if (dice == null || dice.isEmpty() || "?".equals(dice)) dice = "d?";
 
             String resultStr = readString(payload, "result");
@@ -477,6 +514,20 @@ public class GameRoomActivity extends AppCompatActivity
             }
             postEvent(line.toString());
         });
+    }
+
+    private static String mapDiceKindIndex(int idx) {
+        switch (idx) {
+            case 0: return "d4";
+            case 1: return "d6";
+            case 2: return "d8";
+            case 3: return "d10";
+            case 4: return "d12";
+            case 5: return "d20";
+            case 6: return "d100";
+            case 7: return "MAGIC_BALL";
+            default: return "d?";
+        }
     }
 
     @Nullable

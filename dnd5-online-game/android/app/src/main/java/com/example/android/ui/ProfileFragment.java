@@ -83,7 +83,7 @@ public class ProfileFragment extends Fragment {
                 int master = p.stats != null ? p.stats.masterCount : 0;
                 int total = wins + defeats;
                 tvStats.setText(String.format(Locale.getDefault(),
-                        "Игр сыграно: %d  ·  Побед: %d  ·  Поражений: %d  ·  Был мастером: %d раз",
+                        "Игр сыграно: %d\nПобед: %d\nПоражений: %d\nБыл мастером: %d раз",
                         total, wins, defeats, master));
                 tvRegDate.setText("Дата регистрации: " + formatDate(p.registrationDate));
             }

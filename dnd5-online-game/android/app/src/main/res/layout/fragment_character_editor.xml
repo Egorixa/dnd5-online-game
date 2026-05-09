@@ -10,6 +10,12 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <Button android:id="@+id/btn_sync_char"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="↻ Загрузить с сервера"
+            android:visibility="gone"/>
+
         <!-- ──────────── Основные сведения ──────────── -->
         <TextView android:text="Основные сведения" style="@style/HeaderTextStyle"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
@@ -536,12 +542,6 @@
                 android:text="Заклинания пока не добавлены"
                 android:textStyle="italic"/>
         </LinearLayout>
-
-        <Button android:id="@+id/btn_sync_char"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="↻ Загрузить с сервера"
-            android:visibility="gone"/>
 
         <Button android:id="@+id/btn_save_char"
             android:layout_width="match_parent" android:layout_height="wrap_content"

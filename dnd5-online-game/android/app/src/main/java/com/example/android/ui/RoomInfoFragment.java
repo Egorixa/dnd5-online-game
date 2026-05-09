@@ -33,6 +33,9 @@ public class RoomInfoFragment extends Fragment {
     private Button btnLeave;
     private final StringBuilder eventsBuffer = new StringBuilder();
 
+    private boolean lastConnected = false;
+    @Nullable private String lastConnectionMsg = null;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -54,7 +57,7 @@ public class RoomInfoFragment extends Fragment {
             btnLeave.setOnClickListener(v -> host.onRoomInfoLeaveClicked());
             loadParticipants();
         }
-        tvStatus.setText("Статус: ⟳ подключение…");
+        renderStatus();
         tvEvents.setText(eventsBuffer.toString());
     }
 
@@ -102,10 +105,17 @@ public class RoomInfoFragment extends Fragment {
     }
 
     public void setConnectionStatus(boolean connected, @Nullable String message) {
+        lastConnected = connected;
+        lastConnectionMsg = message;
+        renderStatus();
+    }
+
+    private void renderStatus() {
         if (tvStatus == null) return;
-        tvStatus.setText(connected
-                ? "Статус: ● актуально"
-                : "Статус: ⚠ " + (message != null ? message : "нет связи"));
+        String connection = lastConnected
+                ? "● актуально"
+                : "⚠ " + (lastConnectionMsg != null ? lastConnectionMsg : "нет связи");
+        tvStatus.setText("Связь: " + connection);
     }
 
     public void appendEvent(String line) {
