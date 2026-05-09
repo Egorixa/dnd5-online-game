@@ -1,7 +1,5 @@
 package com.example.android.net.dto;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.List;
 import java.util.Map;
 
@@ -119,7 +117,6 @@ public class CharacterDtos {
         public String name;
         public String playerName;
         public String race;
-        @SerializedName("class")
         public String characterClass;
         public Integer level;
         public String background;
@@ -214,7 +211,6 @@ public class CharacterDtos {
         public String name;
         public String playerName;
         public String race;
-        @SerializedName("class")
         public String characterClass;
         public int level;
         public String background;
