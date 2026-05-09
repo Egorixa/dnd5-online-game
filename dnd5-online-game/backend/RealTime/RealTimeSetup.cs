@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +13,12 @@ namespace RealTime
     {
         public static IServiceCollection AddRealTimeModule(this IServiceCollection services)
         {
-            services.AddSignalR();
+            services.AddSignalR()
+                .AddJsonProtocol(o =>
+                {
+                    o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                });
             services.AddSingleton<IRoomNotifier, SignalRRoomNotifier>();
             return services;
         }
