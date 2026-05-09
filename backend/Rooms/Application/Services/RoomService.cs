@@ -59,11 +59,13 @@ namespace Rooms.Application.Services
                     throw new ConflictException("ROOM_CODE_CONFLICT", "Could not allocate a unique room code");
             }
 
+            var name = string.IsNullOrWhiteSpace(request.Name) ? code : request.Name.Trim();
+
             var room = new Room
             {
                 RoomId = Guid.NewGuid(),
                 RoomCode = code,
-                Name = request.Name.Trim(),
+                Name = name,
                 MasterId = userId,
                 AccessMode = request.AccessMode,
                 Status = RoomStatus.ACTIVE,
@@ -109,6 +111,7 @@ namespace Rooms.Application.Services
                     r.Name,
                     r.MasterId,
                     PlayersCount = r.Participants.Count(p => p.LeftAt == null),
+                    r.Status,
                     r.CreatedAt
                 })
                 .ToListAsync(ct);
@@ -124,8 +127,39 @@ namespace Rooms.Application.Services
                 MasterId = r.MasterId,
                 MasterUsername = usernames.GetValueOrDefault(r.MasterId, string.Empty),
                 PlayersCount = r.PlayersCount,
+                Status = r.Status,
                 CreatedAt = r.CreatedAt
             }).ToList();
+        }
+
+        public async Task<List<MyRoomDto>> GetMineAsync(Guid masterId, RoomStatus? status, int limit, int offset, CancellationToken ct = default)
+        {
+            limit = Math.Clamp(limit, 1, 100);
+            offset = Math.Max(0, offset);
+
+            var query = _context.Rooms
+                .Where(r => r.MasterId == masterId);
+
+            if (status.HasValue)
+                query = query.Where(r => r.Status == status.Value);
+
+            var rooms = await query
+                .OrderBy(r => r.Status == RoomStatus.ACTIVE ? 0 : r.Status == RoomStatus.PAUSED ? 1 : 2)
+                .ThenByDescending(r => r.CreatedAt)
+                .Skip(offset).Take(limit)
+                .Select(r => new MyRoomDto
+                {
+                    RoomId = r.RoomId,
+                    RoomCode = r.RoomCode,
+                    Name = r.Name,
+                    AccessMode = r.AccessMode,
+                    Status = r.Status,
+                    PlayersCount = r.Participants.Count(p => p.LeftAt == null),
+                    CreatedAt = r.CreatedAt
+                })
+                .ToListAsync(ct);
+
+            return rooms;
         }
 
         public async Task<JoinRoomResponse> JoinAsync(Guid userId, string roomCode, CancellationToken ct = default)
@@ -344,10 +378,13 @@ namespace Rooms.Application.Services
             return new RoomStateDto
             {
                 RoomId = room.RoomId,
+                RoomCode = room.RoomCode,
                 Name = room.Name,
+                AccessMode = room.AccessMode,
                 Status = room.Status,
                 MasterId = room.MasterId,
                 MasterUsername = usernames.GetValueOrDefault(room.MasterId, string.Empty),
+                CreatedAt = room.CreatedAt,
                 Participants = activeParticipants
                     .Select(p => new RoomParticipantDto
                     {

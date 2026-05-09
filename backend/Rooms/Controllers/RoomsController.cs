@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Rooms.Application.DTOs;
 using Rooms.Application.Interfaces;
+using Rooms.Entities;
 using Shared.Auth;
 
 namespace Rooms.Controllers
@@ -27,6 +28,14 @@ namespace Rooms.Controllers
             var userId = _currentUser.RequireUserId();
             var response = await _service.CreateAsync(userId, request, ct);
             return StatusCode(StatusCodes.Status201Created, response);
+        }
+
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMine([FromQuery] RoomStatus? status = null, [FromQuery] int limit = 50, [FromQuery] int offset = 0, CancellationToken ct = default)
+        {
+            var userId = _currentUser.RequireUserId();
+            var rooms = await _service.GetMineAsync(userId, status, limit, offset, ct);
+            return Ok(new { rooms });
         }
 
         [HttpGet("public")]

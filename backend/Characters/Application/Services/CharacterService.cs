@@ -248,7 +248,7 @@ namespace Characters.Application.Services
             if (r.Name != null) c.Name = r.Name;
             if (r.PlayerName != null) c.PlayerName = r.PlayerName;
             if (r.Race.HasValue) c.Race = r.Race;
-            if (r.Class.HasValue) c.Class = r.Class;
+            if (r.CharacterClass.HasValue) c.Class = r.CharacterClass;
             if (r.Level.HasValue) c.Level = r.Level.Value;
             if (r.Background.HasValue) c.Background = r.Background;
             if (r.Alignment.HasValue) c.Alignment = r.Alignment;

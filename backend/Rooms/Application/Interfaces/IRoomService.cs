@@ -1,4 +1,5 @@
 using Rooms.Application.DTOs;
+using Rooms.Entities;
 
 namespace Rooms.Application.Interfaces
 {
@@ -6,6 +7,7 @@ namespace Rooms.Application.Interfaces
     {
         Task<CreateRoomResponse> CreateAsync(Guid userId, CreateRoomRequest request, CancellationToken ct = default);
         Task<List<PublicRoomDto>> GetPublicAsync(int limit, int offset, CancellationToken ct = default);
+        Task<List<MyRoomDto>> GetMineAsync(Guid masterId, RoomStatus? status, int limit, int offset, CancellationToken ct = default);
         Task<JoinRoomResponse> JoinAsync(Guid userId, string roomCode, CancellationToken ct = default);
         Task LeaveAsync(Guid userId, Guid roomId, CancellationToken ct = default);
         Task KickAsync(Guid masterUserId, Guid roomId, KickParticipantRequest request, CancellationToken ct = default);

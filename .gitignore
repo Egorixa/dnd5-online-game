@@ -11,3 +11,4 @@ obj/
 
 # Docker
 *.log
+backend/.DS_Store

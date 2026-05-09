@@ -1,9 +1,11 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Characters;
 using Characters.Data;
 using Identity;
 using Identity.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RealTime;
@@ -38,6 +40,40 @@ builder.Services
     {
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+builder.Services.Configure<ApiBehaviorOptions>(o =>
+{
+    o.InvalidModelStateResponseFactory = ctx =>
+    {
+        var details = ctx.ModelState
+            .Where(kv => kv.Value?.Errors.Count > 0)
+            .SelectMany(kv => kv.Value!.Errors.Select(e => new ApiErrorDetail
+            {
+                Field = kv.Key,
+                Message = string.IsNullOrEmpty(e.ErrorMessage) ? "Invalid value" : e.ErrorMessage
+            }))
+            .ToList();
+
+        var error = new ApiError
+        {
+            Code = "VALIDATION_ERROR",
+            Message = "One or more validation errors occurred.",
+            Details = details
+        };
+
+        var json = JsonSerializer.Serialize(error, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        return new ContentResult
+        {
+            StatusCode = StatusCodes.Status400BadRequest,
+            ContentType = "application/json; charset=utf-8",
+            Content = json
+        };
+    };
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
