@@ -163,10 +163,10 @@ public class CharacterEditorFragment extends Fragment {
         } else {
             if (editing != null) {
                 lockIdentityFields();
+                autoSaveHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+                setupAutoSaveWatchers((ViewGroup) view);
             }
-            autoSaveHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-            setupAutoSaveWatchers((ViewGroup) view);
-            btnSave.setVisibility(View.GONE);
+            btnSave.setVisibility(View.VISIBLE);
         }
     }
 
@@ -197,11 +197,20 @@ public class CharacterEditorFragment extends Fragment {
     }
 
     private void lockIdentityFields() {
-        if (etCharName != null) {
+        if (etCharName != null && !TextUtils.isEmpty(textOf(etCharName))) {
             etCharName.setEnabled(false);
             etCharName.setFocusable(false);
         }
-        lockRaceClassFields();
+        if (spinnerRace != null && !TextUtils.isEmpty(textOf(spinnerRace))) {
+            spinnerRace.setEnabled(false);
+            spinnerRace.setFocusable(false);
+            spinnerRace.setClickable(false);
+        }
+        if (spinnerClass != null && !TextUtils.isEmpty(textOf(spinnerClass))) {
+            spinnerClass.setEnabled(false);
+            spinnerClass.setFocusable(false);
+            spinnerClass.setClickable(false);
+        }
     }
 
     private void setupAutoSaveWatchers(ViewGroup root) {
