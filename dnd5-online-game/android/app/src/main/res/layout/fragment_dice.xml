@@ -65,6 +65,23 @@
             android:layout_height="wrap_content"/>
     </GridLayout>
 
+    <Button
+        android:id="@+id/btn_magic_ball"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="🎱 Магический шар"/>
+
+    <TextView
+        android:id="@+id/tv_magic_ball_answer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:padding="8dp"
+        android:visibility="gone"/>
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

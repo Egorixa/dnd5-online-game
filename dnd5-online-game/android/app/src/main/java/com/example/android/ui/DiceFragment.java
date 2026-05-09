@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,9 +48,33 @@ public class DiceFragment extends Fragment {
             DiceDtos.DiceKind.D100
     };
 
+    private static final String[] MAGIC_BALL_ANSWERS = {
+            "Бесспорно",
+            "Предрешено",
+            "Никаких сомнений",
+            "Определённо да",
+            "Можешь быть уверен в этом",
+            "Мне кажется — да",
+            "Вероятнее всего",
+            "Хорошие перспективы",
+            "Знаки говорят — да",
+            "Да",
+            "Пока не ясно, попробуй снова",
+            "Спроси позже",
+            "Лучше не рассказывать",
+            "Сейчас нельзя предсказать",
+            "Сконцентрируйся и спроси опять",
+            "Даже не думай",
+            "Мой ответ — нет",
+            "По моим данным — нет",
+            "Перспективы не очень хорошие",
+            "Весьма сомнительно"
+    };
+
     private SessionManager session;
     private TextView tvStatus;
     private SwitchMaterial swHidden;
+    private TextView tvMagicAnswer;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -63,6 +88,7 @@ public class DiceFragment extends Fragment {
         session = new SessionManager(requireContext());
         tvStatus = view.findViewById(R.id.tv_dice_room_status);
         swHidden = view.findViewById(R.id.sw_dice_hidden);
+        tvMagicAnswer = view.findViewById(R.id.tv_magic_ball_answer);
 
         int[] btnIds = {R.id.btn_d4, R.id.btn_d6, R.id.btn_d8, R.id.btn_d10,
                 R.id.btn_d12, R.id.btn_d20, R.id.btn_d100};
@@ -76,6 +102,11 @@ public class DiceFragment extends Fragment {
             log.clear();
             adapter.notifyDataSetChanged();
         });
+
+        Button btnMagic = view.findViewById(R.id.btn_magic_ball);
+        if (btnMagic != null) {
+            btnMagic.setOnClickListener(v -> shakeMagicBall());
+        }
 
         RecyclerView rv = view.findViewById(R.id.rv_dice_log);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -115,6 +146,15 @@ public class DiceFragment extends Fragment {
         appendLog(tf.format(new Date()) + "  d" + sides + " → " + result);
     }
 
+    private void shakeMagicBall() {
+        String answer = MAGIC_BALL_ANSWERS[random.nextInt(MAGIC_BALL_ANSWERS.length)];
+        if (tvMagicAnswer != null) {
+            tvMagicAnswer.setVisibility(View.VISIBLE);
+            tvMagicAnswer.setText("🎱 " + answer);
+        }
+        appendLog(tf.format(new Date()) + "  Магический шар → " + answer);
+    }
+
     private void rollServer(String roomId, String kind, int sides) {
         String mode = (swHidden != null && swHidden.isChecked())
                 ? DiceDtos.DiceMode.HIDDEN : DiceDtos.DiceMode.PUBLIC;
@@ -129,7 +169,6 @@ public class DiceFragment extends Fragment {
                             Toast.makeText(getContext(),
                                     ApiErrors.extract(response, "Ошибка броска"),
                                     Toast.LENGTH_SHORT).show();
-
                             rollLocal(sides);
                             return;
                         }
