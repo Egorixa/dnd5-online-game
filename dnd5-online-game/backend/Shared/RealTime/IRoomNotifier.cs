@@ -4,5 +4,6 @@ namespace Shared.RealTime
     {
         Task NotifyAsync(Guid roomId, string eventName, object payload, CancellationToken ct = default);
         Task NotifyUserAsync(Guid userId, string eventName, object payload, CancellationToken ct = default);
+        Task RemoveUserFromRoomGroupAsync(Guid userId, Guid roomId, CancellationToken ct = default);
     }
 }

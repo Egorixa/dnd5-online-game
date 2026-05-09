@@ -296,6 +296,8 @@ namespace Rooms.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
+            await _notifier.RemoveUserFromRoomGroupAsync(target.UserId, roomId, ct);
+
             await _notifier.NotifyAsync(roomId, HubEvents.ParticipantLeft, new
             {
                 participantId = target.ParticipantId,

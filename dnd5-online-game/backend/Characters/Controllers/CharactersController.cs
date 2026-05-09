@@ -60,5 +60,53 @@ namespace Characters.Controllers
             await _service.DeleteAsync(userId, roomId, characterId, ct);
             return NoContent();
         }
+
+        [HttpPost("{characterId:guid}/attacks")]
+        public async Task<IActionResult> AddAttack(Guid roomId, Guid characterId, [FromBody] AttackDto dto, CancellationToken ct)
+        {
+            var userId = _currentUser.RequireUserId();
+            var result = await _service.AddAttackAsync(userId, roomId, characterId, dto, ct);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        [HttpPut("{characterId:guid}/attacks/{attackId:guid}")]
+        public async Task<IActionResult> UpdateAttack(Guid roomId, Guid characterId, Guid attackId, [FromBody] AttackDto dto, CancellationToken ct)
+        {
+            var userId = _currentUser.RequireUserId();
+            var result = await _service.UpdateAttackAsync(userId, roomId, characterId, attackId, dto, ct);
+            return Ok(result);
+        }
+
+        [HttpDelete("{characterId:guid}/attacks/{attackId:guid}")]
+        public async Task<IActionResult> DeleteAttack(Guid roomId, Guid characterId, Guid attackId, CancellationToken ct)
+        {
+            var userId = _currentUser.RequireUserId();
+            await _service.DeleteAttackAsync(userId, roomId, characterId, attackId, ct);
+            return NoContent();
+        }
+
+        [HttpPost("{characterId:guid}/spells")]
+        public async Task<IActionResult> AddSpell(Guid roomId, Guid characterId, [FromBody] SpellDto dto, CancellationToken ct)
+        {
+            var userId = _currentUser.RequireUserId();
+            var result = await _service.AddSpellAsync(userId, roomId, characterId, dto, ct);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        [HttpPut("{characterId:guid}/spells/{spellId:guid}")]
+        public async Task<IActionResult> UpdateSpell(Guid roomId, Guid characterId, Guid spellId, [FromBody] SpellDto dto, CancellationToken ct)
+        {
+            var userId = _currentUser.RequireUserId();
+            var result = await _service.UpdateSpellAsync(userId, roomId, characterId, spellId, dto, ct);
+            return Ok(result);
+        }
+
+        [HttpDelete("{characterId:guid}/spells/{spellId:guid}")]
+        public async Task<IActionResult> DeleteSpell(Guid roomId, Guid characterId, Guid spellId, CancellationToken ct)
+        {
+            var userId = _currentUser.RequireUserId();
+            await _service.DeleteSpellAsync(userId, roomId, characterId, spellId, ct);
+            return NoContent();
+        }
     }
 }

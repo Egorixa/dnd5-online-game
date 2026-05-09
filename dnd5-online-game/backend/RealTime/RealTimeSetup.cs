@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using RealTime.Connections;
 using RealTime.Hubs;
 using RealTime.Notifications;
 using Shared.RealTime;
@@ -19,6 +20,7 @@ namespace RealTime
                     o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 });
+            services.AddSingleton<IConnectionTracker, ConnectionTracker>();
             services.AddSingleton<IRoomNotifier, SignalRRoomNotifier>();
             return services;
         }

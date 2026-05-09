@@ -69,6 +69,204 @@ namespace Characters.Application.Services
             return response;
         }
 
+        public async Task<AttackDto> AddAttackAsync(Guid userId, Guid roomId, Guid characterId, AttackDto dto, CancellationToken ct = default)
+        {
+            var access = await _roomAccess.RequireParticipantAsync(userId, roomId, ct);
+            var character = await LoadAsync(roomId, characterId, ct);
+
+            if (character.OwnerUserId != userId && !access.IsMaster)
+                throw new ForbiddenException("Only the owner of the character or the room master may edit it");
+
+            var attack = new Attack
+            {
+                AttackId = Guid.NewGuid(),
+                CharacterId = characterId,
+                Name = dto.Name,
+                AttackBonus = dto.AttackBonus,
+                Damage = dto.Damage
+            };
+
+            character.Attacks.Add(attack);
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+
+            await _context.SaveChangesAsync(ct);
+
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            {
+                action = "updated",
+                characterName = character.Name,
+                ownerUserName,
+                character = CharacterMapper.ToResponse(character)
+            }, ct);
+
+            return new AttackDto { AttackId = attack.AttackId, Name = attack.Name, AttackBonus = attack.AttackBonus, Damage = attack.Damage };
+        }
+
+        public async Task<AttackDto> UpdateAttackAsync(Guid userId, Guid roomId, Guid characterId, Guid attackId, AttackDto dto, CancellationToken ct = default)
+        {
+            var access = await _roomAccess.RequireParticipantAsync(userId, roomId, ct);
+            var character = await LoadAsync(roomId, characterId, ct);
+
+            if (character.OwnerUserId != userId && !access.IsMaster)
+                throw new ForbiddenException("Only the owner of the character or the room master may edit it");
+
+            var attack = character.Attacks.FirstOrDefault(a => a.AttackId == attackId)
+                ?? throw new NotFoundException("Attack not found");
+
+            attack.Name = dto.Name;
+            attack.AttackBonus = dto.AttackBonus;
+            attack.Damage = dto.Damage;
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+
+            await _context.SaveChangesAsync(ct);
+
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            {
+                action = "updated",
+                characterName = character.Name,
+                ownerUserName,
+                character = CharacterMapper.ToResponse(character)
+            }, ct);
+
+            return new AttackDto { AttackId = attack.AttackId, Name = attack.Name, AttackBonus = attack.AttackBonus, Damage = attack.Damage };
+        }
+
+        public async Task DeleteAttackAsync(Guid userId, Guid roomId, Guid characterId, Guid attackId, CancellationToken ct = default)
+        {
+            var access = await _roomAccess.RequireParticipantAsync(userId, roomId, ct);
+            var character = await LoadAsync(roomId, characterId, ct);
+
+            if (character.OwnerUserId != userId && !access.IsMaster)
+                throw new ForbiddenException("Only the owner of the character or the room master may edit it");
+
+            var attack = character.Attacks.FirstOrDefault(a => a.AttackId == attackId)
+                ?? throw new NotFoundException("Attack not found");
+
+            character.Attacks.Remove(attack);
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+
+            await _context.SaveChangesAsync(ct);
+
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            {
+                action = "updated",
+                characterName = character.Name,
+                ownerUserName,
+                character = CharacterMapper.ToResponse(character)
+            }, ct);
+        }
+
+        public async Task<SpellResponseDto> AddSpellAsync(Guid userId, Guid roomId, Guid characterId, SpellDto dto, CancellationToken ct = default)
+        {
+            var access = await _roomAccess.RequireParticipantAsync(userId, roomId, ct);
+            var character = await LoadAsync(roomId, characterId, ct);
+
+            if (character.OwnerUserId != userId && !access.IsMaster)
+                throw new ForbiddenException("Only the owner of the character or the room master may edit it");
+
+            var spell = new Spell
+            {
+                SpellId = Guid.NewGuid(),
+                CharacterId = characterId,
+                Name = dto.Name,
+                Level = dto.Level,
+                School = dto.School,
+                CastingTime = dto.CastingTime,
+                Range = dto.Range,
+                Components = dto.Components,
+                Duration = dto.Duration,
+                Description = dto.Description,
+                Prepared = dto.Prepared
+            };
+
+            character.Spells.Add(spell);
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+
+            await _context.SaveChangesAsync(ct);
+
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            {
+                action = "updated",
+                characterName = character.Name,
+                ownerUserName,
+                character = CharacterMapper.ToResponse(character)
+            }, ct);
+
+            return new SpellResponseDto { SpellId = spell.SpellId, Name = spell.Name, Level = spell.Level, School = spell.School, CastingTime = spell.CastingTime, Range = spell.Range, Components = spell.Components, Duration = spell.Duration, Description = spell.Description, Prepared = spell.Prepared };
+        }
+
+        public async Task<SpellResponseDto> UpdateSpellAsync(Guid userId, Guid roomId, Guid characterId, Guid spellId, SpellDto dto, CancellationToken ct = default)
+        {
+            var access = await _roomAccess.RequireParticipantAsync(userId, roomId, ct);
+            var character = await LoadAsync(roomId, characterId, ct);
+
+            if (character.OwnerUserId != userId && !access.IsMaster)
+                throw new ForbiddenException("Only the owner of the character or the room master may edit it");
+
+            var spell = character.Spells.FirstOrDefault(s => s.SpellId == spellId)
+                ?? throw new NotFoundException("Spell not found");
+
+            spell.Name = dto.Name;
+            spell.Level = dto.Level;
+            spell.School = dto.School;
+            spell.CastingTime = dto.CastingTime;
+            spell.Range = dto.Range;
+            spell.Components = dto.Components;
+            spell.Duration = dto.Duration;
+            spell.Description = dto.Description;
+            spell.Prepared = dto.Prepared;
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+
+            await _context.SaveChangesAsync(ct);
+
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            {
+                action = "updated",
+                characterName = character.Name,
+                ownerUserName,
+                character = CharacterMapper.ToResponse(character)
+            }, ct);
+
+            return new SpellResponseDto { SpellId = spell.SpellId, Name = spell.Name, Level = spell.Level, School = spell.School, CastingTime = spell.CastingTime, Range = spell.Range, Components = spell.Components, Duration = spell.Duration, Description = spell.Description, Prepared = spell.Prepared };
+        }
+
+        public async Task DeleteSpellAsync(Guid userId, Guid roomId, Guid characterId, Guid spellId, CancellationToken ct = default)
+        {
+            var access = await _roomAccess.RequireParticipantAsync(userId, roomId, ct);
+            var character = await LoadAsync(roomId, characterId, ct);
+
+            if (character.OwnerUserId != userId && !access.IsMaster)
+                throw new ForbiddenException("Only the owner of the character or the room master may edit it");
+
+            var spell = character.Spells.FirstOrDefault(s => s.SpellId == spellId)
+                ?? throw new NotFoundException("Spell not found");
+
+            character.Spells.Remove(spell);
+            character.UpdatedAt = DateTime.UtcNow;
+            character.RowVersion += 1;
+
+            await _context.SaveChangesAsync(ct);
+
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            {
+                action = "updated",
+                characterName = character.Name,
+                ownerUserName,
+                character = CharacterMapper.ToResponse(character)
+            }, ct);
+        }
+
         public async Task<CharacterResponse> GetAsync(Guid userId, Guid roomId, Guid characterId, CancellationToken ct = default)
         {
             await _roomAccess.RequireParticipantAsync(userId, roomId, ct);

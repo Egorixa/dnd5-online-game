@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using RealTime.Connections;
 using Rooms.Application.Interfaces;
 using Shared.Auth;
 using Shared.Errors;
@@ -11,19 +12,32 @@ namespace RealTime.Hubs
     {
         private readonly IRoomAccessChecker _access;
         private readonly ICurrentUser _currentUser;
+        private readonly IConnectionTracker _tracker;
 
-        public RoomHub(IRoomAccessChecker access, ICurrentUser currentUser)
+        public RoomHub(IRoomAccessChecker access, ICurrentUser currentUser, IConnectionTracker tracker)
         {
             _access = access;
             _currentUser = currentUser;
+            _tracker = tracker;
         }
 
         public override async Task OnConnectedAsync()
         {
             var userId = _currentUser.UserId;
             if (userId.HasValue)
+            {
+                _tracker.Track(userId.Value, Context.ConnectionId);
                 await Groups.AddToGroupAsync(Context.ConnectionId, UserGroup(userId.Value));
+            }
             await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var userId = _currentUser.UserId;
+            if (userId.HasValue)
+                _tracker.Untrack(userId.Value, Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
         }
 
         public async Task JoinRoom(Guid roomId)
