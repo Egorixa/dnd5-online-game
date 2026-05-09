@@ -9,33 +9,52 @@ const CharacterBasicInfo = ({ data, onChange, errors }) => {
     onChange({ ...data, [field]: value });
   };
 
+  const locked = !!data.characterId;
+  const lockedTitle = locked
+    ? 'Нельзя изменить — поле заполняется при создании листа в мобильном приложении'
+    : undefined;
+
   return (
     <div className="sheet-section">
       <h3 className="section-title">Основные сведения</h3>
       <div className="sheet-grid sheet-grid-3">
         <div className="input-group">
-          <label className="input-label">Имя персонажа</label>
+          <label className="input-label">Имя персонажа{locked ? ' 🔒' : ''}</label>
           <input
             className={`form-input ${errors?.name ? 'input-error' : ''}`}
             value={data.name || ''}
             onChange={(e) => handleChange('name', e.target.value)}
             placeholder="Имя персонажа"
             maxLength={50}
+            disabled={locked}
+            title={lockedTitle}
           />
           {errors?.name && <span className="error-text">{errors.name}</span>}
         </div>
 
         <div className="input-group">
-          <label className="input-label">Раса</label>
-          <select className="form-select" value={data.race || ''} onChange={(e) => handleChange('race', e.target.value)}>
+          <label className="input-label">Раса{locked ? ' 🔒' : ''}</label>
+          <select
+            className="form-select"
+            value={data.race || ''}
+            onChange={(e) => handleChange('race', e.target.value)}
+            disabled={locked}
+            title={lockedTitle}
+          >
             <option value="">Выберите расу</option>
             {RACES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
         </div>
 
         <div className="input-group">
-          <label className="input-label">Класс</label>
-          <select className="form-select" value={data.class || ''} onChange={(e) => handleChange('class', e.target.value)}>
+          <label className="input-label">Класс{locked ? ' 🔒' : ''}</label>
+          <select
+            className="form-select"
+            value={data.class || ''}
+            onChange={(e) => handleChange('class', e.target.value)}
+            disabled={locked}
+            title={lockedTitle}
+          >
             <option value="">Выберите класс</option>
             {CLASSES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
@@ -72,11 +91,16 @@ const CharacterBasicInfo = ({ data, onChange, errors }) => {
         </div>
 
         <div className="input-group">
-          <label className="input-label">Имя игрока</label>
-          <input className="form-input"
+          <label className="input-label">Имя игрока{locked ? ' 🔒' : ''}</label>
+          <input
+            className="form-input"
             value={data.playerName || ''}
             onChange={(e) => handleChange('playerName', e.target.value)}
-            placeholder="Имя игрока" maxLength={50} />
+            placeholder="Имя игрока"
+            maxLength={50}
+            disabled={locked}
+            title={lockedTitle}
+          />
         </div>
       </div>
     </div>

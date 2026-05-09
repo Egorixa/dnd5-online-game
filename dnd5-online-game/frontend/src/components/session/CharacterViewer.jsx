@@ -61,8 +61,18 @@ const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
   const [data, setData] = useState(() => toData(player));
   const dirtyRef = useRef(false);
   const debounceRef = useRef(null);
+  const editSeqRef = useRef(0);
+  const lastSyncedIdRef = useRef(player?.id);
 
   useEffect(() => {
+    if (player?.id !== lastSyncedIdRef.current) {
+      lastSyncedIdRef.current = player?.id;
+      dirtyRef.current = false;
+      editSeqRef.current = 0;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      setData(toData(player));
+      return;
+    }
     if (dirtyRef.current) return;
     setData(toData(player));
   }, [player]);
@@ -73,11 +83,17 @@ const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
 
   const handleChange = (newData) => {
     dirtyRef.current = true;
+    const seq = ++editSeqRef.current;
     setData(newData);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      dirtyRef.current = false;
-      onUpdate(player.id, fromData(newData));
+    debounceRef.current = setTimeout(async () => {
+      try {
+        await onUpdate(player.id, fromData(newData));
+      } finally {
+        if (seq === editSeqRef.current) {
+          dirtyRef.current = false;
+        }
+      }
     }, DEBOUNCE_MS);
   };
 

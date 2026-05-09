@@ -9,6 +9,7 @@ import * as roomsApi from '../api/rooms';
 import * as charactersApi from '../api/characters';
 import { decodeIncoming as decodeCharacter } from '../api/characters';
 import { getProfile } from '../api/auth';
+import { extractApiError } from '../utils/errorMessages';
 import {
   connectSession, onSessionEvent, disconnectSession, SESSION_EVENTS,
 } from '../api/signalr';
@@ -153,8 +154,6 @@ const SessionPage = () => {
           const who = p.username
             || (p.userId ? `Игрок ${String(p.userId).slice(0, 6)}` : 'Игрок');
           addEvent({ type: 'join', text: `${who} присоединился` });
-          fetchRoomState(roomId);
-          reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_LEFT, ({ participantId, username, kicked }) => {
           const who = username || 'Игрок';
@@ -163,8 +162,6 @@ const SessionPage = () => {
             type: 'leave',
             text: kicked ? `${who} исключён мастером` : `${who} покинул сессию`,
           });
-          fetchRoomState(roomId);
-          reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.CHARACTER_UPDATED, (payload) => {
           const action = payload?.action;
@@ -195,8 +192,6 @@ const SessionPage = () => {
             type: 'system',
             text: who ? `Лист персонажа ${verb}: ${who}` : `Лист персонажа ${verb}`,
           });
-          fetchRoomState(roomId);
-          reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.DICE_ROLLED, (roll) => {
           const dice = formatDice(roll.dice);
@@ -307,7 +302,7 @@ const SessionPage = () => {
       setCharacters((prev) => ({ ...prev, [p.userId]: saved }));
     } catch (err) {
       const status = err?.response?.status;
-      const msg = err?.response?.data?.message || err?.message || 'Не удалось сохранить лист';
+      const msg = extractApiError(err) || 'Не удалось сохранить лист';
       console.warn('[session] character update failed:', status, msg, err?.response?.data);
       useToastStore.getState().error(`Лист не сохранён: ${msg}`);
       if (existing) {

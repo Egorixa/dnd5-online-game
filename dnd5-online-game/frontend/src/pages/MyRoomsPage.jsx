@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, RefreshCw, LogIn, Clock, Crown } from 'lucide-react';
 import * as roomsApi from '../api/rooms';
+import { extractApiError } from '../utils/errorMessages';
 
 const STATUS_LABEL = {
   ACTIVE: 'Активна',
@@ -61,7 +62,7 @@ const MyRoomsPage = () => {
       });
       setRooms(list);
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || 'Не удалось загрузить список комнат');
+      setError(extractApiError(err) || 'Не удалось загрузить список комнат');
     } finally {
       setLoading(false);
     }

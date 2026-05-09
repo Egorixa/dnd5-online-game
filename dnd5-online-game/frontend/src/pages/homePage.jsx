@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useRoomStore from '../stores/roomStore';
+import { extractApiError } from '../utils/errorMessages';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const HomePage = () => {
       const room = await createRoom({ name: name.trim(), accessMode });
       navigate(`/session/${room.roomId}`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Ошибка создания комнаты');
+      setError(extractApiError(err) || 'Ошибка создания комнаты');
     } finally {
       setBusy(false);
     }
