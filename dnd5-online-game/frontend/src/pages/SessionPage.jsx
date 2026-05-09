@@ -148,24 +148,22 @@ const SessionPage = () => {
       signalrRef.current = conn;
 
       unsubs.push(
-        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, async (p) => {
+        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, (p) => {
           addParticipant(p);
-          await fetchRoomState(roomId);
-          const fresh = useRoomStore.getState().participants
-            .find((x) => x.userId === p.userId || x.participantId === p.participantId);
-          const who = fresh?.username
-            || p.username
+          const who = p.username
             || (p.userId ? `Игрок ${String(p.userId).slice(0, 6)}` : 'Игрок');
           addEvent({ type: 'join', text: `${who} присоединился` });
+          fetchRoomState(roomId);
           reloadCharacters();
         }),
-        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_LEFT, async ({ participantId, userId, username }) => {
-          const before = useRoomStore.getState().participants
-            .find((x) => x.participantId === participantId || x.userId === userId);
-          const who = username || before?.username || 'Игрок';
+        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_LEFT, ({ participantId, username, kicked }) => {
+          const who = username || 'Игрок';
           removeParticipant(participantId);
-          addEvent({ type: 'leave', text: `${who} покинул сессию` });
-          await fetchRoomState(roomId);
+          addEvent({
+            type: 'leave',
+            text: kicked ? `${who} исключён мастером` : `${who} покинул сессию`,
+          });
+          fetchRoomState(roomId);
           reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.CHARACTER_UPDATED, (payload) => {
@@ -201,14 +199,21 @@ const SessionPage = () => {
           reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.DICE_ROLLED, (roll) => {
-          const total = roll.total ?? roll.result;
+          const dice = formatDice(roll.dice);
           const isHidden = roll.mode === 'HIDDEN' || roll.mode === 1;
           const charName = roll.characterName;
           const userName = roll.userName;
           const who = charName && userName
             ? `${charName} (${userName})`
             : charName || userName || 'Игрок';
-          const dice = formatDice(roll.dice);
+          if (dice === 'magic_ball' || roll.magicBallAnswer) {
+            addEvent({
+              type: 'system',
+              text: `Магический шар (${who}): «${roll.magicBallAnswer || '—'}»`,
+            });
+            return;
+          }
+          const total = roll.total ?? roll.result;
           addEvent({
             type: 'dice',
             text: `${who} бросил ${dice}: ${total}${isHidden ? ' (скрытый)' : ''}`,
