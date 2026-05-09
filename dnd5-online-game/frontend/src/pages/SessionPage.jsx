@@ -156,16 +156,29 @@ const SessionPage = () => {
           if (data?.ownerUserId) {
             setCharacters((prev) => ({ ...prev, [data.ownerUserId]: data }));
           }
-          addEvent({ type: 'system', text: 'Лист персонажа обновлён' });
+          const charName = data?.characterName || data?.name;
+          const ownerName = data?.ownerUserName;
+          const who = charName && ownerName
+            ? `${charName} (${ownerName})`
+            : charName || ownerName || null;
+          addEvent({
+            type: 'system',
+            text: who ? `Лист персонажа обновлён: ${who}` : 'Лист персонажа обновлён',
+          });
           fetchRoomState(roomId);
           reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.DICE_ROLLED, (roll) => {
           const total = roll.total ?? roll.result;
           const isHidden = roll.mode === 'HIDDEN';
+          const charName = roll.characterName;
+          const userName = roll.userName;
+          const who = charName && userName
+            ? `${charName} (${userName})`
+            : charName || userName || 'Игрок';
           addEvent({
             type: 'dice',
-            text: `Бросок ${roll.dice}: ${total}${isHidden ? ' (скрытый)' : ''}`,
+            text: `${who} бросил ${roll.dice}: ${total}${isHidden ? ' (скрытый)' : ''}`,
           });
         }),
         onSessionEvent(conn, SESSION_EVENTS.ROOM_UPDATED, (state) => {
@@ -201,10 +214,12 @@ const SessionPage = () => {
         dice: diceType,
         mode: isPublic ? 'PUBLIC' : 'HIDDEN',
       });
-      addEvent({
-        type: 'dice',
-        text: `Мастер бросил ${data.dice}: ${data.total ?? data.result}${isPublic ? '' : ' (скрытый)'}`,
-      });
+      if (!isPublic) {
+        addEvent({
+          type: 'dice',
+          text: `Мастер бросил ${data.dice}: ${data.total ?? data.result} (скрытый)`,
+        });
+      }
     } catch (err) {
       addEvent({ type: 'system', text: `Ошибка броска: ${err.message}` });
     }
@@ -222,14 +237,27 @@ const SessionPage = () => {
 
   const handleCharacterUpdate = async (participantId, data) => {
     const p = participants.find((x) => x.participantId === participantId);
-    const characterId = characters[p?.userId]?.characterId;
+    if (!p?.userId) return;
+    const existing = characters[p.userId];
+    const optimistic = { ...(existing || {}), ...data, ownerUserId: p.userId };
+    setCharacters((prev) => ({ ...prev, [p.userId]: optimistic }));
     try {
-      if (characterId) {
-        const { data: updated } = await charactersApi.updateRoomCharacter(roomId, characterId, data);
-        setCharacters((prev) => ({ ...prev, [p.userId]: updated }));
-      }
+      const characterId = existing?.characterId;
+      const { data: saved } = characterId
+        ? await charactersApi.updateRoomCharacter(roomId, characterId, data)
+        : await charactersApi.createRoomCharacter(roomId, { ...data, ownerUserId: p.userId });
+      setCharacters((prev) => ({ ...prev, [p.userId]: saved }));
     } catch (err) {
-      console.warn('[session] character update failed:', err.message);
+      console.warn('[session] character update failed:', err?.message);
+      if (existing) {
+        setCharacters((prev) => ({ ...prev, [p.userId]: existing }));
+      } else {
+        setCharacters((prev) => {
+          const next = { ...prev };
+          delete next[p.userId];
+          return next;
+        });
+      }
     }
   };
 

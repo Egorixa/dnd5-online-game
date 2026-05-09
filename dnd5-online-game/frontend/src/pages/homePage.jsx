@@ -55,7 +55,7 @@ const HomePage = () => {
             value={accessMode}
             onChange={(e) => setAccessMode(e.target.value)}
           >
-            <option value="PUBLIC">Публичная (видна в поиске)</option>
+            <option value="PUBLIC">Публичная (видна игрокам в мобильном приложении)</option>
             <option value="PRIVATE">Приватная (только по коду)</option>
           </select>
         </div>

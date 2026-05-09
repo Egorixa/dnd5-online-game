@@ -62,7 +62,7 @@ const ProfilePage = () => {
               <Trophy size={20} />
               <div>
                 <span className="stat-label">Победы</span>
-                <span className="stat-value">{displayUser.wins ?? 0}</span>
+                <span className="stat-value">{displayUser.stats?.wins ?? displayUser.wins ?? 0}</span>
               </div>
             </div>
 
@@ -70,7 +70,7 @@ const ProfilePage = () => {
               <Swords size={20} />
               <div>
                 <span className="stat-label">Поражения</span>
-                <span className="stat-value">{displayUser.defeats ?? displayUser.losses ?? 0}</span>
+                <span className="stat-value">{displayUser.stats?.defeats ?? displayUser.defeats ?? displayUser.losses ?? 0}</span>
               </div>
             </div>
 
@@ -78,7 +78,7 @@ const ProfilePage = () => {
               <Crown size={20} />
               <div>
                 <span className="stat-label">Партий как Мастер</span>
-                <span className="stat-value">{displayUser.countMasterTime ?? displayUser.masterGames ?? 0}</span>
+                <span className="stat-value">{displayUser.stats?.masterCount ?? displayUser.countMasterTime ?? displayUser.masterGames ?? 0}</span>
               </div>
             </div>
           </div>

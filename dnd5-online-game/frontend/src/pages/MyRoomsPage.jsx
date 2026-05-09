@@ -5,22 +5,19 @@ import * as roomsApi from '../api/rooms';
 
 const STATUS_LABEL = {
   ACTIVE: 'Активна',
-  PAUSED: 'Пауза',
   FINISHED: 'Завершена',
 };
 
 const STATUS_CLASS = {
   ACTIVE: 'room-card-status-active',
-  PAUSED: 'room-card-status-paused',
   FINISHED: 'room-card-status-finished',
 };
 
-const STATUS_ORDER = { ACTIVE: 0, PAUSED: 1, FINISHED: 2 };
+const STATUS_ORDER = { ACTIVE: 0, FINISHED: 1 };
 
 const FILTERS = [
   { value: 'ALL', label: 'Все' },
   { value: 'ACTIVE', label: 'Активные' },
-  { value: 'PAUSED', label: 'Пауза' },
   { value: 'FINISHED', label: 'Завершённые' },
 ];
 
