@@ -4,6 +4,7 @@ using Characters.Application.Mapping;
 using Characters.Data;
 using Characters.Entities;
 using FluentValidation;
+using Identity.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Rooms.Application.Interfaces;
 using Shared.Errors;
@@ -19,17 +20,20 @@ namespace Characters.Application.Services
         private readonly IRoomAccessChecker _roomAccess;
         private readonly IValidator<CharacterUpsertRequest> _validator;
         private readonly IRoomNotifier _notifier;
+        private readonly IUserLookupService _userLookup;
 
         public CharacterService(
             CharactersDbContext context,
             IRoomAccessChecker roomAccess,
             IValidator<CharacterUpsertRequest> validator,
-            IRoomNotifier notifier)
+            IRoomNotifier notifier,
+            IUserLookupService userLookup)
         {
             _context = context;
             _roomAccess = roomAccess;
             _validator = validator;
             _notifier = notifier;
+            _userLookup = userLookup;
         }
 
         public async Task<CharacterResponse> CreateAsync(Guid userId, Guid roomId, CharacterUpsertRequest request, CancellationToken ct = default)
@@ -53,9 +57,12 @@ namespace Characters.Application.Services
             await _context.SaveChangesAsync(ct);
 
             var response = CharacterMapper.ToResponse(character);
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
             await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
             {
                 action = "created",
+                characterName = response.Name,
+                ownerUserName,
                 character = response
             }, ct);
 
@@ -105,9 +112,12 @@ namespace Characters.Application.Services
             await _context.SaveChangesAsync(ct);
 
             var response = CharacterMapper.ToResponse(character);
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
             await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
             {
                 action = "updated",
+                characterName = response.Name,
+                ownerUserName,
                 character = response
             }, ct);
 
@@ -128,10 +138,13 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
+            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
             await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
             {
                 action = "deleted",
-                characterId = character.CharacterId
+                characterId = character.CharacterId,
+                characterName = character.Name,
+                ownerUserName
             }, ct);
         }
 

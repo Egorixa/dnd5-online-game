@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Identity.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Rooms.Application.DTOs;
 using Rooms.Application.Interfaces;
@@ -22,12 +23,14 @@ namespace Rooms.Application.Services
         private readonly RoomsDbContext _context;
         private readonly IRoomAccessChecker _access;
         private readonly IRoomNotifier _notifier;
+        private readonly IUserLookupService _userLookup;
 
-        public DiceService(RoomsDbContext context, IRoomAccessChecker access, IRoomNotifier notifier)
+        public DiceService(RoomsDbContext context, IRoomAccessChecker access, IRoomNotifier notifier, IUserLookupService userLookup)
         {
             _context = context;
             _access = access;
             _notifier = notifier;
+            _userLookup = userLookup;
         }
 
         public async Task<DiceRollResponse> RollAsync(Guid userId, Guid roomId, DiceRollRequest request, CancellationToken ct = default)
@@ -44,6 +47,7 @@ namespace Rooms.Application.Services
                 Mode = request.Mode,
                 Modifier = request.Modifier,
                 ActorUserId = userId,
+                UserName = await _userLookup.GetUsernameAsync(userId, ct),
                 CreatedAt = DateTime.UtcNow
             };
 

@@ -35,6 +35,8 @@ namespace Rooms.Application.DTOs
         public int? Total { get; set; }
         public DiceMode Mode { get; set; }
         public Guid ActorUserId { get; set; }
+        public string? UserName { get; set; }
+        public string? CharacterName { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }
