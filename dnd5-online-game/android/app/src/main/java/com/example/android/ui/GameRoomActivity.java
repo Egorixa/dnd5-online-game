@@ -449,12 +449,30 @@ public class GameRoomActivity extends AppCompatActivity
     @Override
     public void onCharacterUpdated(JsonObject payload) {
         mainHandler.post(() -> {
-            String who = extractCharacterOwnerLabel(payload);
-            postEvent("✏ Лист обновлён: " + who);
+            JsonObject inner = null;
+            if (payload != null && payload.has("character")
+                    && payload.get("character").isJsonObject()) {
+                inner = payload.getAsJsonObject("character");
+            }
+            String action = readString(payload, "action");
+
+            String who = extractCharacterOwnerLabel(payload, inner);
+            String prefix;
+            if ("created".equalsIgnoreCase(action)) prefix = "➕ Лист создан: ";
+            else if ("deleted".equalsIgnoreCase(action)) prefix = "🗑 Лист удалён: ";
+            else prefix = "✏ Лист обновлён: ";
+            postEvent(prefix + who);
 
             String me = session != null ? session.getServerUserId() : null;
             String owner = readString(payload, "ownerUserId", "userId");
+            if (owner == null && inner != null) {
+                owner = readString(inner, "ownerUserId", "userId");
+            }
             boolean mySheet = me != null && owner != null && me.equalsIgnoreCase(owner);
+
+            if ("deleted".equalsIgnoreCase(action)) {
+                return;
+            }
 
             Fragment sheet = getSupportFragmentManager().findFragmentByTag(TAG_SHEET);
             if (sheet instanceof CharacterEditorFragment && mySheet) {
@@ -557,11 +575,17 @@ public class GameRoomActivity extends AppCompatActivity
         return "Игрок";
     }
 
-    private String extractCharacterOwnerLabel(JsonObject payload) {
-        if (payload == null) return "персонаж";
-        String name = readString(payload, "characterName", "name");
+    private String extractCharacterOwnerLabel(JsonObject payload, JsonObject inner) {
+        if (payload == null && inner == null) return "персонаж";
+        String name = payload != null ? readString(payload, "characterName") : null;
+        if (name == null && inner != null) name = readString(inner, "name", "characterName");
+        if (name == null && payload != null) name = readString(payload, "name");
+        String userName = payload != null ? readString(payload, "ownerUserName") : null;
+        if (name != null && userName != null) return name + " (" + userName + ")";
         if (name != null) return name;
-        String owner = readString(payload, "ownerUserId", "userId");
+        if (userName != null) return userName;
+        String owner = payload != null ? readString(payload, "ownerUserId", "userId") : null;
+        if (owner == null && inner != null) owner = readString(inner, "ownerUserId", "userId");
         if (owner != null) {
             String me = session != null ? session.getServerUserId() : null;
             if (owner.equalsIgnoreCase(me)) return "ваш лист";
