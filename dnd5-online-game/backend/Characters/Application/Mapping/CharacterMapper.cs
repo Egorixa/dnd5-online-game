@@ -19,7 +19,7 @@ namespace Characters.Application.Mapping
                 Name = c.Name,
                 PlayerName = c.PlayerName,
                 Race = c.Race,
-                Class = c.Class,
+                CharacterClass = c.Class,
                 Level = c.Level,
                 Background = c.Background,
                 Alignment = c.Alignment,

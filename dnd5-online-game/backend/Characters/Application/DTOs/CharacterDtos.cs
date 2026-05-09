@@ -8,7 +8,7 @@ namespace Characters.Application.DTOs
         public string? Name { get; set; }
         public string? PlayerName { get; set; }
         public Race? Race { get; set; }
-        public CharacterClass? Class { get; set; }
+        public CharacterClass? CharacterClass { get; set; }
         public int? Level { get; set; }
         public Background? Background { get; set; }
         public Alignment? Alignment { get; set; }
@@ -105,7 +105,7 @@ namespace Characters.Application.DTOs
         public string Name { get; set; } = string.Empty;
         public string PlayerName { get; set; } = string.Empty;
         public Race? Race { get; set; }
-        public CharacterClass? Class { get; set; }
+        public CharacterClass? CharacterClass { get; set; }
         public int Level { get; set; }
         public Background? Background { get; set; }
         public Alignment? Alignment { get; set; }

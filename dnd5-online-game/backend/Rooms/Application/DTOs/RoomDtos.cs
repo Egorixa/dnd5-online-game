@@ -25,6 +25,7 @@ namespace Rooms.Application.DTOs
         public Guid MasterId { get; set; }
         public string MasterUsername { get; set; } = string.Empty;
         public int PlayersCount { get; set; }
+        public RoomStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
@@ -39,13 +40,27 @@ namespace Rooms.Application.DTOs
         public RoomStateDto CurrentState { get; set; } = new();
     }
 
+    public class MyRoomDto
+    {
+        public Guid RoomId { get; set; }
+        public string RoomCode { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public AccessMode AccessMode { get; set; }
+        public RoomStatus Status { get; set; }
+        public int PlayersCount { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
     public class RoomStateDto
     {
         public Guid RoomId { get; set; }
+        public string RoomCode { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+        public AccessMode AccessMode { get; set; }
         public RoomStatus Status { get; set; }
         public Guid MasterId { get; set; }
         public string MasterUsername { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
         public List<RoomParticipantDto> Participants { get; set; } = new();
     }
 
