@@ -43,6 +43,18 @@ public class GamesFragment extends Fragment {
     private final Map<String, String> codeToRoomId = new HashMap<>();
     private final Map<String, String> codeToMasterId = new HashMap<>();
 
+    private static final long ROOMS_REFRESH_INTERVAL_MS = 5000L;
+    private android.os.Handler refreshHandler;
+    private final Runnable refreshTask = new Runnable() {
+        @Override public void run() {
+            if (!isAdded()) return;
+            loadPublicRooms();
+            if (refreshHandler != null) {
+                refreshHandler.postDelayed(this, ROOMS_REFRESH_INTERVAL_MS);
+            }
+        }
+    };
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_games, container, false);
@@ -80,6 +92,19 @@ public class GamesFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (isApiAvailable()) loadPublicRooms();
+        if (refreshHandler == null) {
+            refreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        }
+        refreshHandler.removeCallbacks(refreshTask);
+        refreshHandler.postDelayed(refreshTask, ROOMS_REFRESH_INTERVAL_MS);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (refreshHandler != null) {
+            refreshHandler.removeCallbacks(refreshTask);
+        }
     }
 
     private boolean isApiAvailable() {
@@ -145,6 +170,43 @@ public class GamesFragment extends Fragment {
                     Toast.LENGTH_LONG).show();
             return;
         }
+
+        checkHasTemplatesThen(() -> doJoinRoomByCode(code));
+    }
+
+    private void checkHasTemplatesThen(Runnable onHas) {
+        ApiClient.get(requireContext()).characters().listTemplates()
+                .enqueue(new Callback<CharactersApi.CharactersListResponse>() {
+                    @Override
+                    public void onResponse(Call<CharactersApi.CharactersListResponse> call,
+                                           Response<CharactersApi.CharactersListResponse> response) {
+                        if (!isAdded()) return;
+                        boolean has = response.isSuccessful()
+                                && response.body() != null
+                                && response.body().characters != null
+                                && !response.body().characters.isEmpty();
+                        if (!has) {
+                            new AlertDialog.Builder(requireContext())
+                                    .setTitle("Нет персонажей")
+                                    .setMessage("Перед входом в комнату создайте хотя бы одного персонажа в разделе «Персонажи».")
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                            return;
+                        }
+                        onHas.run();
+                    }
+
+                    @Override
+                    public void onFailure(Call<CharactersApi.CharactersListResponse> call, Throwable t) {
+                        if (!isAdded()) return;
+                        Toast.makeText(getContext(),
+                                "Сеть: " + ApiErrors.fromThrowable(t, "ошибка"),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void doJoinRoomByCode(String code) {
         ApiClient.get(requireContext()).rooms().join(code).enqueue(new Callback<RoomDtos.JoinRoomResponse>() {
             @Override
             public void onResponse(Call<RoomDtos.JoinRoomResponse> call, Response<RoomDtos.JoinRoomResponse> response) {

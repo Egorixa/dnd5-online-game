@@ -103,6 +103,13 @@ public class CharacterEditorFragment extends Fragment {
     private String roomModeRoomId = "";
     private String roomModeCharacterId = "";
 
+    private static final long AUTO_SAVE_DELAY_MS = 1200L;
+    private android.os.Handler autoSaveHandler;
+    private final Runnable autoSaveTask = this::performAutoSave;
+    private boolean suppressWatchers = false;
+    private boolean autoSaveInProgress = false;
+    private boolean autoSavePending = false;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_character_editor, container, false);
@@ -140,23 +147,121 @@ public class CharacterEditorFragment extends Fragment {
         }
         recalcAll();
 
-        view.findViewById(R.id.btn_save_char).setOnClickListener(v -> save());
+        View btnSave = view.findViewById(R.id.btn_save_char);
+        btnSave.setOnClickListener(v -> save(false));
 
         View btnSync = view.findViewById(R.id.btn_sync_char);
         if (btnSync != null) {
-            btnSync.setVisibility(roomMode ? View.VISIBLE : View.GONE);
-            btnSync.setOnClickListener(v -> {
-                if (roomMode) {
-                    Toast.makeText(getContext(), "Загружаю с сервера…", Toast.LENGTH_SHORT).show();
-                    loadFromRoomServer();
-                }
-            });
+            btnSync.setVisibility(View.GONE);
         }
 
 
         if (roomMode) {
             lockRaceClassFields();
+            setAllFieldsReadOnly((ViewGroup) view);
+            btnSave.setVisibility(View.GONE);
+        } else {
+            if (editing != null) {
+                lockIdentityFields();
+            }
+            autoSaveHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+            setupAutoSaveWatchers((ViewGroup) view);
+            btnSave.setVisibility(View.GONE);
         }
+    }
+
+    private void setAllFieldsReadOnly(ViewGroup root) {
+        if (root == null) return;
+        for (int i = 0; i < root.getChildCount(); i++) {
+            View child = root.getChildAt(i);
+            if (child instanceof EditText) {
+                child.setEnabled(false);
+                child.setFocusable(false);
+                child.setFocusableInTouchMode(false);
+            } else if (child instanceof AutoCompleteTextView) {
+                child.setEnabled(false);
+                child.setFocusable(false);
+                child.setClickable(false);
+            } else if (child instanceof CheckBox) {
+                child.setEnabled(false);
+                child.setClickable(false);
+            } else if (child instanceof Button || child instanceof ImageButton) {
+                if (child.getId() != R.id.btn_sync_char) {
+                    child.setEnabled(false);
+                    child.setClickable(false);
+                }
+            } else if (child instanceof ViewGroup) {
+                setAllFieldsReadOnly((ViewGroup) child);
+            }
+        }
+    }
+
+    private void lockIdentityFields() {
+        if (etCharName != null) {
+            etCharName.setEnabled(false);
+            etCharName.setFocusable(false);
+        }
+        lockRaceClassFields();
+    }
+
+    private void setupAutoSaveWatchers(ViewGroup root) {
+        if (root == null) return;
+        for (int i = 0; i < root.getChildCount(); i++) {
+            View child = root.getChildAt(i);
+            if (child instanceof EditText) {
+                ((EditText) child).addTextChangedListener(autoSaveTextWatcher());
+            } else if (child instanceof CheckBox) {
+                ((CheckBox) child).setOnCheckedChangeListener((b, checked) -> {
+                    if (!suppressWatchers) scheduleAutoSave();
+                });
+            } else if (child instanceof ViewGroup) {
+                setupAutoSaveWatchers((ViewGroup) child);
+            }
+        }
+    }
+
+    private TextWatcher autoSaveTextWatcher() {
+        return new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {
+                if (!suppressWatchers) scheduleAutoSave();
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        };
+    }
+
+    private void scheduleAutoSave() {
+        if (autoSaveHandler == null || roomMode) return;
+        autoSavePending = true;
+        autoSaveHandler.removeCallbacks(autoSaveTask);
+        autoSaveHandler.postDelayed(autoSaveTask, AUTO_SAVE_DELAY_MS);
+    }
+
+    private void performAutoSave() {
+        if (!isAdded() || roomMode) return;
+        if (autoSaveInProgress) return;
+        String name = textOf(etCharName);
+        String race = textOf(spinnerRace);
+        String cls = textOf(spinnerClass);
+        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(race) || TextUtils.isEmpty(cls)) return;
+        autoSaveInProgress = true;
+        autoSavePending = false;
+        try {
+            save(true);
+        } finally {
+            autoSaveInProgress = false;
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (autoSaveHandler != null) {
+            autoSaveHandler.removeCallbacks(autoSaveTask);
+            if (autoSavePending && !roomMode) {
+                performAutoSave();
+            }
+        }
+        super.onDestroyView();
     }
 
     private void lockRaceClassFields() {
@@ -524,6 +629,15 @@ public class CharacterEditorFragment extends Fragment {
     }
 
     private void fillFromCharacter(Character c) {
+        suppressWatchers = true;
+        try {
+            fillFromCharacterInternal(c);
+        } finally {
+            suppressWatchers = false;
+        }
+    }
+
+    private void fillFromCharacterInternal(Character c) {
         etCharName.setText(c.characterName);
         etPlayerName.setText(c.playerName);
         spinnerRace.setText(c.race, false);
@@ -613,14 +727,16 @@ public class CharacterEditorFragment extends Fragment {
         return v;
     }
 
-    private void save() {
+    private void save(boolean silent) {
         Character c = (editing != null) ? editing : new Character();
         c.userId = new SessionManager(requireContext()).getUserId();
 
         String name = textOf(etCharName);
         if (TextUtils.isEmpty(name) || name.length() > 50) {
-            Toast.makeText(getContext(), "Имя персонажа: 1–50 символов", Toast.LENGTH_SHORT).show();
-            etCharName.setError("1–50 символов");
+            if (!silent) {
+                Toast.makeText(getContext(), "Имя персонажа: 1–50 символов", Toast.LENGTH_SHORT).show();
+                etCharName.setError("1–50 символов");
+            }
             return;
         }
         c.characterName = name;
@@ -632,7 +748,9 @@ public class CharacterEditorFragment extends Fragment {
         c.alignment = textOf(spinnerAlignment);
 
         if (TextUtils.isEmpty(c.race) || TextUtils.isEmpty(c.characterClass)) {
-            Toast.makeText(getContext(), "Выберите расу и класс", Toast.LENGTH_SHORT).show();
+            if (!silent) {
+                Toast.makeText(getContext(), "Выберите расу и класс", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
@@ -727,15 +845,15 @@ public class CharacterEditorFragment extends Fragment {
         boolean useServer = session.hasServerSession();
 
         if (roomMode) {
-
-            saveToServerRoomMode(c, session);
+            return;
         } else if (useServer) {
-
-            saveToServer(c, session, null, false);
+            saveToServer(c, session, null, false, silent);
         } else {
             saveLocal(c);
-            Toast.makeText(getContext(), "Персонаж сохранён локально", Toast.LENGTH_SHORT).show();
-            safePopBackStack();
+            if (!silent) {
+                Toast.makeText(getContext(), "Персонаж сохранён локально", Toast.LENGTH_SHORT).show();
+                safePopBackStack();
+            }
         }
     }
 
@@ -786,7 +904,7 @@ public class CharacterEditorFragment extends Fragment {
     }
 
     private void saveToServer(Character c, SessionManager session,
-                              String activeRoomId, boolean inRoom) {
+                              String activeRoomId, boolean inRoom, boolean silent) {
         CharacterDtos.CharacterUpsertRequest req = CharacterMapper.toUpsert(c);
         retrofit2.Call<CharacterDtos.CharacterResponse> call;
         com.example.android.net.api.CharactersApi api =
@@ -813,15 +931,20 @@ public class CharacterEditorFragment extends Fragment {
                                    retrofit2.Response<CharacterDtos.CharacterResponse> response) {
                 if (!isAdded()) return;
                 if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(getContext(),
-                            ApiErrors.extract(response, "Ошибка сохранения"),
-                            Toast.LENGTH_LONG).show();
+                    if (!silent) {
+                        Toast.makeText(getContext(),
+                                ApiErrors.extract(response, "Ошибка сохранения"),
+                                Toast.LENGTH_LONG).show();
+                    }
                     return;
                 }
                 Character merged = CharacterMapper.fromResponse(response.body(), c, session.getUserId());
                 saveLocal(merged);
-                Toast.makeText(getContext(), "Персонаж сохранён на сервере", Toast.LENGTH_SHORT).show();
-                safePopBackStack();
+                editing = merged;
+                if (!silent) {
+                    Toast.makeText(getContext(), "Персонаж сохранён на сервере", Toast.LENGTH_SHORT).show();
+                    safePopBackStack();
+                }
             }
 
             @Override
@@ -829,10 +952,12 @@ public class CharacterEditorFragment extends Fragment {
                 if (!isAdded()) return;
 
                 saveLocal(c);
-                Toast.makeText(getContext(),
-                        "Сохранено локально (сеть: " + ApiErrors.fromThrowable(t, "ошибка") + ")",
-                        Toast.LENGTH_LONG).show();
-                safePopBackStack();
+                if (!silent) {
+                    Toast.makeText(getContext(),
+                            "Сохранено локально (сеть: " + ApiErrors.fromThrowable(t, "ошибка") + ")",
+                            Toast.LENGTH_LONG).show();
+                    safePopBackStack();
+                }
             }
         });
     }
