@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Trash2, ChevronRight, Play, Square, HelpCircle, Swords } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
@@ -152,8 +152,41 @@ const InitiativeTracker = ({ players = [], selectedPlayerId, onSelectPlayer, onU
     if (c.isPlayer) onSelectPlayer?.(c.id);
   };
 
+  const containerRef = useRef(null);
+  const contentRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return undefined;
+
+    const recompute = () => {
+      const containerH = container.clientHeight;
+      const containerW = container.clientWidth;
+      const contentH = content.scrollHeight;
+      const contentW = content.scrollWidth;
+      if (!containerH || !contentH || !containerW || !contentW) return;
+      const ratioH = containerH / contentH;
+      const ratioW = containerW / contentW;
+      const next = Math.max(0.55, Math.min(1, Math.min(ratioH, ratioW)));
+      setScale(next);
+    };
+
+    recompute();
+    const ro = new ResizeObserver(recompute);
+    ro.observe(container);
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, [combatants.length, showAddNpc, showHelp, combatActive]);
+
   return (
-    <div className="initiative-tracker">
+    <div className="initiative-tracker" ref={containerRef}>
+      <div
+        className="initiative-tracker-content"
+        ref={contentRef}
+        style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: `${100 / scale}%` }}
+      >
       <div className="initiative-header">
         <h3 className="panel-title">Боевой трекер</h3>
         <div className="initiative-actions">
@@ -298,6 +331,7 @@ const InitiativeTracker = ({ players = [], selectedPlayerId, onSelectPlayer, onU
           <Button variant="danger" onClick={applyDamageFromModal}>Нанести урон</Button>
         </div>
       </Modal>
+      </div>
     </div>
   );
 };
