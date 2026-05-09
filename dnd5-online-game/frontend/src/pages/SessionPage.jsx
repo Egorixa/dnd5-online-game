@@ -1,11 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Copy, LogOut, Check, Sun, Moon } from 'lucide-react';
+import { Copy, LogOut, Check, Sun, Moon, RefreshCw } from 'lucide-react';
 import useRoomStore from '../stores/roomStore';
 import useThemeStore from '../stores/themeStore';
 import useAuthStore from '../stores/authStore';
+import useToastStore from '../stores/toastStore';
 import * as roomsApi from '../api/rooms';
 import * as charactersApi from '../api/characters';
+import { getProfile } from '../api/auth';
 import {
   connectSession, onSessionEvent, disconnectSession, SESSION_EVENTS,
 } from '../api/signalr';
@@ -93,17 +95,41 @@ const SessionPage = () => {
   };
 
   useEffect(() => {
-    fetchRoomState(roomId);
-    addEvent({ type: 'system', text: 'Сессия открыта. Ожидание игроков…' });
+    if (!currentRoom || currentRoom.roomId !== roomId) return;
+    const userId = user?.userId ?? user?.id ?? null;
+    const masterId = currentRoom.masterId ?? null;
+    if (userId && masterId && String(userId) !== String(masterId)) {
+      useToastStore.getState().error(
+        'Игровая сессия в браузере доступна только Мастеру. Игроки подключаются через мобильное приложение.',
+      );
+      navigate('/', { replace: true });
+    }
+  }, [currentRoom, user, roomId, navigate]);
 
-    charactersApi.listRoomCharacters(roomId).then(({ data }) => {
+  const reloadCharacters = useCallback(async () => {
+    try {
+      const { data } = await charactersApi.listRoomCharacters(roomId);
       const map = {};
       (data.characters || []).forEach((c) => {
         if (c.ownerUserId) map[c.ownerUserId] = c;
       });
       setCharacters(map);
-    }).catch(() => {});
+    } catch (err) {
+      console.warn('[session] reloadCharacters failed:', err?.message);
+    }
   }, [roomId]);
+
+  const handleSyncSheets = async () => {
+    addEvent({ type: 'system', text: 'Синхронизация листов персонажей…' });
+    await Promise.all([fetchRoomState(roomId), reloadCharacters()]);
+    addEvent({ type: 'system', text: 'Листы персонажей синхронизированы.' });
+  };
+
+  useEffect(() => {
+    fetchRoomState(roomId);
+    addEvent({ type: 'system', text: 'Сессия открыта. Ожидание игроков…' });
+    reloadCharacters();
+  }, [roomId, reloadCharacters]);
 
   useEffect(() => {
     let unsubs = [];
@@ -117,16 +143,22 @@ const SessionPage = () => {
         onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, (p) => {
           addParticipant(p);
           addEvent({ type: 'join', text: `Игрок ${String(p.userId).slice(0, 6)} присоединился` });
+          fetchRoomState(roomId);
+          reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_LEFT, ({ participantId }) => {
           removeParticipant(participantId);
           addEvent({ type: 'leave', text: 'Игрок покинул сессию' });
+          fetchRoomState(roomId);
+          reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.CHARACTER_UPDATED, (data) => {
           if (data?.ownerUserId) {
             setCharacters((prev) => ({ ...prev, [data.ownerUserId]: data }));
           }
           addEvent({ type: 'system', text: 'Лист персонажа обновлён' });
+          fetchRoomState(roomId);
+          reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.DICE_ROLLED, (roll) => {
           const total = roll.total ?? roll.result;
@@ -216,8 +248,11 @@ const SessionPage = () => {
     setShowEndModal(false);
     addEvent({ type: 'system', text: 'Сессия завершена!' });
     await finishRoom({ winners, losers });
-    if (user) {
-      updateUser({ ...user, countMasterTime: (user.countMasterTime || 0) + 1 });
+    try {
+      const { data } = await getProfile();
+      updateUser(data);
+    } catch (err) {
+      console.warn('[session] profile refresh after finish failed:', err?.message);
     }
     setTimeout(() => navigate('/'), 1200);
   };
@@ -261,6 +296,14 @@ const SessionPage = () => {
           </div>
         </div>
         <div className="session-topbar-right">
+          <button
+            className="btn-secondary session-sync-btn"
+            onClick={handleSyncSheets}
+            title="Перечитать состояние комнаты и листы персонажей"
+          >
+            <RefreshCw size={16} />
+            Синхронизировать листы
+          </button>
           <button className="icon-btn theme-toggle" onClick={toggleTheme}>
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>

@@ -30,25 +30,28 @@ const EndSessionModal = ({ isOpen, onClose, players, onEnd }) => {
 
       {players.length > 0 ? (
         <div className="end-session-players">
-          {players.map((p) => (
-            <div key={p.id} className="end-session-player-row">
-              <span>{p.characterName || 'Без имени'}</span>
-              <div className="end-session-btns">
-                <button
-                  className={`end-tag-btn ${winners.includes(p.id) ? 'end-tag-winner' : ''}`}
-                  onClick={() => toggleWinner(p.id)}
-                >
-                  Победа
-                </button>
-                <button
-                  className={`end-tag-btn ${losers.includes(p.id) ? 'end-tag-loser' : ''}`}
-                  onClick={() => toggleLoser(p.id)}
-                >
-                  Поражение
-                </button>
+          {players.map((p) => {
+            const key = p.userId || p.id;
+            return (
+              <div key={key} className="end-session-player-row">
+                <span>{p.characterName || 'Без имени'}</span>
+                <div className="end-session-btns">
+                  <button
+                    className={`end-tag-btn ${winners.includes(key) ? 'end-tag-winner' : ''}`}
+                    onClick={() => toggleWinner(key)}
+                  >
+                    Победа
+                  </button>
+                  <button
+                    className={`end-tag-btn ${losers.includes(key) ? 'end-tag-loser' : ''}`}
+                    onClick={() => toggleLoser(key)}
+                  >
+                    Поражение
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Нет подключённых игроков.</p>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { Shield, User, LogOut, Settings, Sun, Moon, Home, PlusCircle, ListChecks, Users } from 'lucide-react';
+import { Shield, User, LogOut, Settings, Sun, Moon, Home, PlusCircle, ListChecks } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 
 const Header = ({ theme, toggleTheme }) => {
@@ -36,11 +36,7 @@ const Header = ({ theme, toggleTheme }) => {
           </NavLink>
           <NavLink to="/rooms" className={({ isActive }) => `header-nav-link ${isActive ? 'active' : ''}`}>
             <ListChecks size={16} />
-            <span>Список комнат</span>
-          </NavLink>
-          <NavLink to="/characters" className={({ isActive }) => `header-nav-link ${isActive ? 'active' : ''}`}>
-            <Users size={16} />
-            <span>Персонажи</span>
+            <span>Мои комнаты</span>
           </NavLink>
         </nav>
 
@@ -65,7 +61,7 @@ const Header = ({ theme, toggleTheme }) => {
                 </div>
                 <div className="dropdown-item" onClick={() => { navigate('/rooms'); setIsMenuOpen(false); }}>
                   <ListChecks size={16} />
-                  <span>Список комнат</span>
+                  <span>Мои комнаты</span>
                 </div>
                 <div className="dropdown-item" onClick={handleProfile}>
                   <Settings size={16} />

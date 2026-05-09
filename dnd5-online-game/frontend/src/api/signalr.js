@@ -3,7 +3,7 @@ import * as signalR from '@microsoft/signalr';
 const HUB_BASE =
   (process.env.REACT_APP_API_URL || 'http://localhost:5050').replace(/\/$/, '');
 
-const HUB_PATH = process.env.REACT_APP_HUB_PATH || '/hubs/room';
+const HUB_PATH = process.env.REACT_APP_HUB_PATH || '/hubs/session';
 const HUB_URL = HUB_BASE + HUB_PATH;
 
 export const SESSION_EVENTS = {

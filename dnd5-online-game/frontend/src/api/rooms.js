@@ -1,13 +1,10 @@
 import client from './client';
 
-export const createRoom = (accessMode = 'PRIVATE') =>
-  client.post('/rooms', { accessMode });
+export const createRoom = ({ name, accessMode = 'PRIVATE' }) =>
+  client.post('/rooms', { name, accessMode });
 
-export const getPublicRooms = (limit = 20, offset = 0) =>
-  client.get('/rooms/public', { params: { limit, offset } });
-
-export const joinRoomByCode = (roomCode) =>
-  client.post(`/rooms/${roomCode}/join`);
+export const getMyRooms = ({ status, limit = 50, offset = 0 } = {}) =>
+  client.get('/rooms/mine', { params: { status, limit, offset } });
 
 export const leaveRoom = (roomId) =>
   client.post(`/rooms/${roomId}/leave`);

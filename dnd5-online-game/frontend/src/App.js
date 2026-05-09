@@ -13,8 +13,7 @@ import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import SessionPage from './pages/SessionPage';
 import RegisterPage from './pages/RegisterPage';
-import RoomsListPage from './pages/RoomsListPage';
-import CharactersListPage from './pages/CharactersListPage';
+import MyRoomsPage from './pages/MyRoomsPage';
 
 const LayoutWithHeader = () => {
   const { theme, toggleTheme } = useThemeStore();
@@ -78,8 +77,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<LayoutWithHeader />}>
               <Route path="/" element={<HomePage />} />
-              <Route path="/rooms" element={<RoomsListPage />} />
-              <Route path="/characters" element={<CharactersListPage />} />
+              <Route path="/rooms" element={<MyRoomsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route path="/session/:roomId" element={
