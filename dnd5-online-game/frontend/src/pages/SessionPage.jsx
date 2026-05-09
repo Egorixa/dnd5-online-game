@@ -261,8 +261,17 @@ const SessionPage = () => {
     }
   };
 
-  const handleMagicBall = (answer) => {
-    addEvent({ type: 'system', text: `Магический шар: "${answer}"` });
+  const handleMagicBall = async () => {
+    try {
+      const { data } = await roomsApi.rollDice(roomId, {
+        dice: 'MAGIC_BALL',
+        mode: 'PUBLIC',
+      });
+      return data?.magicBallAnswer || null;
+    } catch (err) {
+      addEvent({ type: 'system', text: `Ошибка магического шара: ${extractApiError(err) || err.message}` });
+      return null;
+    }
   };
 
   const handleKick = (participantId) => {
@@ -578,7 +587,7 @@ const SessionPage = () => {
 
         <div className="session-col-right">
           <DicePanel onRoll={handleDiceRoll} />
-          <MagicBall onResult={handleMagicBall} />
+          <MagicBall onAsk={handleMagicBall} />
           <EventLog events={eventLog} />
         </div>
       </div>

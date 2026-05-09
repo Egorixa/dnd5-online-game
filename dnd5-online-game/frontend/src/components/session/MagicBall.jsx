@@ -1,29 +1,29 @@
 import React, { useState } from 'react';
 
-const ANSWERS = [
-  'Да', 'Нет', 'Возможно', 'Определённо да', 'Скорее нет',
-  'Без сомнений', 'Весьма сомнительно', 'Знаки говорят — да',
-  'Сконцентрируйся и спроси опять', 'Лучше не рассказывать',
-];
-
-const MagicBall = ({ onResult }) => {
+const MagicBall = ({ onAsk }) => {
   const [answer, setAnswer] = useState(null);
   const [shaking, setShaking] = useState(false);
 
-  const shake = () => {
+  const shake = async () => {
+    if (!onAsk) return;
     setShaking(true);
     setAnswer(null);
-    setTimeout(() => {
-      const result = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
-      setAnswer(result);
+    try {
+      const result = await onAsk();
+      if (result) setAnswer(result);
+    } finally {
       setShaking(false);
-      if (onResult) onResult(result);
-    }, 800);
+    }
   };
 
   return (
     <div className="magic-ball-section">
-      <button className={`magic-ball-btn ${shaking ? 'magic-shaking' : ''}`} onClick={shake} disabled={shaking}>
+      <button
+        type="button"
+        className={`magic-ball-btn ${shaking ? 'magic-shaking' : ''}`}
+        onClick={shake}
+        disabled={shaking}
+      >
         <span className="magic-ball-icon">8</span>
         <span>Магический шар</span>
       </button>

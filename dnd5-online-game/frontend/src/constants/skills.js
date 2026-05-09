@@ -29,10 +29,10 @@ export const SAVING_THROWS = [
 ];
 
 export const ABILITIES = [
-  { value: 'strength', label: 'Сила', labelEn: 'STR' },
-  { value: 'dexterity', label: 'Ловкость', labelEn: 'DEX' },
-  { value: 'constitution', label: 'Телосложение', labelEn: 'CON' },
-  { value: 'intelligence', label: 'Интеллект', labelEn: 'INT' },
-  { value: 'wisdom', label: 'Мудрость', labelEn: 'WIS' },
-  { value: 'charisma', label: 'Харизма', labelEn: 'CHA' },
+  { value: 'strength', label: 'Сила', labelEn: 'СИЛ' },
+  { value: 'dexterity', label: 'Ловкость', labelEn: 'ЛОВ' },
+  { value: 'constitution', label: 'Телосложение', labelEn: 'ТЕЛ' },
+  { value: 'intelligence', label: 'Интеллект', labelEn: 'ИНТ' },
+  { value: 'wisdom', label: 'Мудрость', labelEn: 'МДР' },
+  { value: 'charisma', label: 'Харизма', labelEn: 'ХАР' },
 ];

@@ -23,7 +23,6 @@ const AbilityScores = ({ data, onChange }) => {
           return (
             <div key={ab.value} className="ability-card">
               <span className="ability-name">{ab.label}</span>
-              <span className="ability-name-en">{ab.labelEn}</span>
               <input
                 className="ability-score-input"
                 type="number" min={1} max={30}
