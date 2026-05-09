@@ -597,8 +597,8 @@ public class GameRoomActivity extends AppCompatActivity
     @Override
     public void onParticipantJoined(JsonObject payload) {
         mainHandler.post(() -> {
-            String userName = payload.has("userName") && !payload.get("userName").isJsonNull()
-                    ? payload.get("userName").getAsString() : "Игрок";
+            String userName = readString(payload, "username", "userName");
+            if (userName == null) userName = "Игрок";
             postEvent("→ " + userName + " вошёл");
             RoomInfoFragment ri = findRoomInfo();
             if (ri != null) ri.loadParticipants();
@@ -608,9 +608,12 @@ public class GameRoomActivity extends AppCompatActivity
     @Override
     public void onParticipantLeft(JsonObject payload) {
         mainHandler.post(() -> {
-            String userName = payload.has("userName") && !payload.get("userName").isJsonNull()
-                    ? payload.get("userName").getAsString() : "Игрок";
-            postEvent("← " + userName + " вышел");
+            String userName = readString(payload, "username", "userName");
+            if (userName == null) userName = "Игрок";
+            boolean kicked = payload != null && payload.has("kicked")
+                    && !payload.get("kicked").isJsonNull()
+                    && payload.get("kicked").getAsBoolean();
+            postEvent((kicked ? "✖ " : "← ") + userName + (kicked ? " исключён мастером" : " вышел"));
             RoomInfoFragment ri = findRoomInfo();
             if (ri != null) ri.loadParticipants();
         });
