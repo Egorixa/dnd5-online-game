@@ -1,0 +1,137 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Characters;
+using Characters.Data;
+using Identity;
+using Identity.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using RealTime;
+using Rooms;
+using Rooms.Data;
+using Shared.Auth;
+using Shared.Errors;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSharedAuth(builder.Configuration);
+builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddRoomsModule(builder.Configuration);
+builder.Services.AddCharactersModule(builder.Configuration);
+builder.Services.AddRealTimeModule();
+
+const string CorsPolicy = "ClientApps";
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:3000", "http://localhost:5173" };
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy => policy
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
+});
+
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+builder.Services.Configure<ApiBehaviorOptions>(o =>
+{
+    o.InvalidModelStateResponseFactory = ctx =>
+    {
+        var details = ctx.ModelState
+            .Where(kv => kv.Value?.Errors.Count > 0)
+            .SelectMany(kv => kv.Value!.Errors.Select(e => new ApiErrorDetail
+            {
+                Field = kv.Key,
+                Message = string.IsNullOrEmpty(e.ErrorMessage) ? "Invalid value" : e.ErrorMessage
+            }))
+            .ToList();
+
+        var error = new ApiError
+        {
+            Code = "VALIDATION_ERROR",
+            Message = "One or more validation errors occurred.",
+            Details = details
+        };
+
+        var json = JsonSerializer.Serialize(error, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        return new ContentResult
+        {
+            StatusCode = StatusCodes.Status400BadRequest,
+            ContentType = "application/json; charset=utf-8",
+            Content = json
+        };
+    };
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "DnD5 List Backend",
+        Version = "v1",
+        Description = "Online character sheet for DnD5 — server part."
+    });
+
+    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Provide the JWT obtained from /auth/login"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    sp.GetRequiredService<IdentityDbContext>().Database.Migrate();
+    sp.GetRequiredService<RoomsDbContext>().Database.Migrate();
+    sp.GetRequiredService<CharactersDbContext>().Database.Migrate();
+}
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseRouting();
+app.UseCors(CorsPolicy);
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.MapRealTimeHubs();
+
+app.Run();

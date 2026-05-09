@@ -1,3 +1,4 @@
+# Android
 *.iml
 .gradle
 /local.properties
@@ -9,3 +10,18 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Visual Studio / Backend
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build
+bin/
+obj/
+
+# Docker / Logs
+*.log
+backend/.DS_Store

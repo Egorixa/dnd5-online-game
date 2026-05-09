@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    image: dnd-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5050:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=dnd_db;Username=postgres;Password=root
+      - Jwt__Issuer=dnd5-list-backend
+      - Jwt__Audience=dnd5-list-clients
+      - Jwt__Key=CHANGE-ME-DEV-ONLY-32-bytes-min-secret-1234567890
+      - Jwt__LifetimeMinutes=1440
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  db:
+    image: postgres:latest
+    container_name: dnd_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: dnd_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_new:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_new:
