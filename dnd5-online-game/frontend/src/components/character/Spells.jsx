@@ -3,6 +3,11 @@ import { Plus, Trash2 } from 'lucide-react';
 import { canCastSpells, getSpellAbility, getSpellSaveDC, getSpellAttackBonus, formatModifier } from '../../utils/calculations';
 
 const SPELL_DEBOUNCE_MS = 500;
+const SPELL_ABILITY_RU = {
+  intelligence: 'Инт',
+  wisdom: 'Мдр',
+  charisma: 'Хар',
+};
 const SPELL_TEMPLATE = {
   name: '', level: 0, school: '', castingTime: '', range: '',
   components: '', duration: '', description: '', prepared: false,
@@ -87,7 +92,7 @@ const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, play
       <div className="spell-meta">
         <div className="spell-meta-item">
           <span className="spell-meta-label">Базовая характеристика</span>
-          <span className="spell-meta-value">{spellAbility}</span>
+          <span className="spell-meta-value">{SPELL_ABILITY_RU[spellAbility] || spellAbility}</span>
         </div>
         <div className="spell-meta-item">
           <span className="spell-meta-label">Сложность спасения</span>

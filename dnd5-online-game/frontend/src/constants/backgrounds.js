@@ -6,10 +6,10 @@ export const BACKGROUNDS = [
   { value: 'folk-hero', label: 'Народный герой', labelEn: 'Folk Hero', skills: ['animal-handling', 'survival'] },
   { value: 'guild-artisan', label: 'Гильдейский ремесленник', labelEn: 'Guild Artisan', skills: ['insight', 'persuasion'] },
   { value: 'hermit', label: 'Отшельник', labelEn: 'Hermit', skills: ['medicine', 'religion'] },
-  { value: 'noble', label: 'Дворянин', labelEn: 'Noble', skills: ['history', 'persuasion'] },
+  { value: 'noble', label: 'Благородный', labelEn: 'Noble', skills: ['history', 'persuasion'] },
   { value: 'outlander', label: 'Чужеземец', labelEn: 'Outlander', skills: ['athletics', 'survival'] },
   { value: 'sage', label: 'Мудрец', labelEn: 'Sage', skills: ['arcana', 'history'] },
-  { value: 'sailor', label: 'Моряк', labelEn: 'Sailor', skills: ['athletics', 'perception'] },
+  { value: 'sailor', label: 'Матрос', labelEn: 'Sailor', skills: ['athletics', 'perception'] },
   { value: 'soldier', label: 'Солдат', labelEn: 'Soldier', skills: ['athletics', 'intimidation'] },
   { value: 'urchin', label: 'Беспризорник', labelEn: 'Urchin', skills: ['sleight-of-hand', 'stealth'] },
 ];
