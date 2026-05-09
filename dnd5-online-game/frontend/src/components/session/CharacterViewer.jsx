@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Plus, Trash2, Dice5 } from 'lucide-react';
 import CharacterBasicInfo from '../character/CharacterBasicInfo';
 import AbilityScores from '../character/AbilityScores';
@@ -34,6 +34,7 @@ const toData = (player) => ({
   ...player,
   name: player.characterName ?? player.name ?? '',
   playerName: player.username ?? player.playerName ?? '',
+  class: player.class ?? player.characterClass ?? '',
   attacks: (player.attacks || []).map((a) => ({
     name: a.name || '',
     attackBonus: a.attackBonus ?? a.bonus ?? 0,
@@ -45,6 +46,7 @@ const fromData = (data) => ({
   ...data,
   characterName: data.name,
   username: data.playerName,
+  characterClass: data.class,
   attacks: (data.attacks || []).map((a) => ({
     name: a.name || '',
     bonus: a.attackBonus ?? 0,
@@ -53,11 +55,30 @@ const fromData = (data) => ({
   })),
 });
 
+const DEBOUNCE_MS = 400;
+
 const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
-  const data = useMemo(() => toData(player), [player]);
+  const [data, setData] = useState(() => toData(player));
+  const dirtyRef = useRef(false);
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    if (dirtyRef.current) return;
+    setData(toData(player));
+  }, [player]);
+
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }, []);
 
   const handleChange = (newData) => {
-    onUpdate(player.id, fromData(newData));
+    dirtyRef.current = true;
+    setData(newData);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      dirtyRef.current = false;
+      onUpdate(player.id, fromData(newData));
+    }, DEBOUNCE_MS);
   };
 
   const attacks = data.attacks;
@@ -93,6 +114,7 @@ const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
         <h3 className="section-title">
           Атаки
           <button
+            type="button"
             className="char-viewer-inline-btn"
             onClick={addAttack}
             title="Добавить атаку"
@@ -151,6 +173,7 @@ const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
                     </td>
                     <td>
                       <button
+                        type="button"
                         className="char-viewer-icon-btn char-viewer-roll-btn"
                         onClick={() => rollAttack(a)}
                         title="Бросить атаку"
@@ -160,6 +183,7 @@ const CharacterViewer = ({ player, onUpdate, onAttackRoll }) => {
                     </td>
                     <td>
                       <button
+                        type="button"
                         className="char-viewer-icon-btn"
                         onClick={() => removeAttack(i)}
                         title="Удалить"

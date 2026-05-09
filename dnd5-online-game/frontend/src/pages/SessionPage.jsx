@@ -7,6 +7,7 @@ import useAuthStore from '../stores/authStore';
 import useToastStore from '../stores/toastStore';
 import * as roomsApi from '../api/rooms';
 import * as charactersApi from '../api/characters';
+import { decodeIncoming as decodeCharacter } from '../api/characters';
 import { getProfile } from '../api/auth';
 import {
   connectSession, onSessionEvent, disconnectSession, SESSION_EVENTS,
@@ -18,6 +19,13 @@ import EventLog from '../components/session/EventLog';
 import InitiativeTracker from '../components/session/InitiativeTracker';
 import EndSessionModal from '../components/session/EndSessionModal';
 import CharacterViewer from '../components/session/CharacterViewer';
+
+const DICE_KIND_NAMES = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100', 'magic_ball'];
+const formatDice = (d) => {
+  if (typeof d === 'number') return DICE_KIND_NAMES[d] || `d${d}`;
+  if (typeof d === 'string') return d.toLowerCase();
+  return '?';
+};
 
 const toUiPlayer = (p, characters = {}) => ({
   id: p.participantId,
@@ -140,16 +148,24 @@ const SessionPage = () => {
       signalrRef.current = conn;
 
       unsubs.push(
-        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, (p) => {
+        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, async (p) => {
           addParticipant(p);
-          addEvent({ type: 'join', text: `Игрок ${String(p.userId).slice(0, 6)} присоединился` });
-          fetchRoomState(roomId);
+          await fetchRoomState(roomId);
+          const fresh = useRoomStore.getState().participants
+            .find((x) => x.userId === p.userId || x.participantId === p.participantId);
+          const who = fresh?.username
+            || p.username
+            || (p.userId ? `Игрок ${String(p.userId).slice(0, 6)}` : 'Игрок');
+          addEvent({ type: 'join', text: `${who} присоединился` });
           reloadCharacters();
         }),
-        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_LEFT, ({ participantId }) => {
+        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_LEFT, async ({ participantId, userId, username }) => {
+          const before = useRoomStore.getState().participants
+            .find((x) => x.participantId === participantId || x.userId === userId);
+          const who = username || before?.username || 'Игрок';
           removeParticipant(participantId);
-          addEvent({ type: 'leave', text: 'Игрок покинул сессию' });
-          fetchRoomState(roomId);
+          addEvent({ type: 'leave', text: `${who} покинул сессию` });
+          await fetchRoomState(roomId);
           reloadCharacters();
         }),
         onSessionEvent(conn, SESSION_EVENTS.CHARACTER_UPDATED, (payload) => {
@@ -168,7 +184,7 @@ const SessionPage = () => {
               });
             }
           } else if (character && ownerUserId) {
-            setCharacters((prev) => ({ ...prev, [ownerUserId]: character }));
+            setCharacters((prev) => ({ ...prev, [ownerUserId]: decodeCharacter(character) }));
           }
 
           const who = charName && ownerName
@@ -186,15 +202,16 @@ const SessionPage = () => {
         }),
         onSessionEvent(conn, SESSION_EVENTS.DICE_ROLLED, (roll) => {
           const total = roll.total ?? roll.result;
-          const isHidden = roll.mode === 'HIDDEN';
+          const isHidden = roll.mode === 'HIDDEN' || roll.mode === 1;
           const charName = roll.characterName;
           const userName = roll.userName;
           const who = charName && userName
             ? `${charName} (${userName})`
             : charName || userName || 'Игрок';
+          const dice = formatDice(roll.dice);
           addEvent({
             type: 'dice',
-            text: `${who} бросил ${roll.dice}: ${total}${isHidden ? ' (скрытый)' : ''}`,
+            text: `${who} бросил ${dice}: ${total}${isHidden ? ' (скрытый)' : ''}`,
           });
         }),
         onSessionEvent(conn, SESSION_EVENTS.ROOM_UPDATED, (state) => {
@@ -230,14 +247,17 @@ const SessionPage = () => {
         dice: diceType,
         mode: isPublic ? 'PUBLIC' : 'HIDDEN',
       });
+      const diceLabel = formatDice(data.dice ?? diceType);
       if (!isPublic) {
         addEvent({
           type: 'dice',
-          text: `Мастер бросил ${data.dice}: ${data.total ?? data.result} (скрытый)`,
+          text: `Мастер бросил ${diceLabel}: ${data.total ?? data.result} (скрытый)`,
         });
       }
+      return { dice: diceLabel, result: data.total ?? data.result };
     } catch (err) {
       addEvent({ type: 'system', text: `Ошибка броска: ${err.message}` });
+      return null;
     }
   };
 
@@ -257,14 +277,34 @@ const SessionPage = () => {
     const existing = characters[p.userId];
     const optimistic = { ...(existing || {}), ...data, ownerUserId: p.userId };
     setCharacters((prev) => ({ ...prev, [p.userId]: optimistic }));
+
+    const diff = {};
+    const old = existing || {};
+    for (const key of Object.keys(data || {})) {
+      const a = data[key];
+      const b = old[key];
+      if (a === b) continue;
+      if (typeof a === 'object' || typeof b === 'object') {
+        try {
+          if (JSON.stringify(a) === JSON.stringify(b)) continue;
+        } catch { /* fall through and include */ }
+      }
+      diff[key] = a;
+    }
+
+    if (Object.keys(diff).length === 0) return;
+
     try {
       const characterId = existing?.characterId;
       const { data: saved } = characterId
-        ? await charactersApi.updateRoomCharacter(roomId, characterId, data)
-        : await charactersApi.createRoomCharacter(roomId, { ...data, ownerUserId: p.userId });
+        ? await charactersApi.updateRoomCharacter(roomId, characterId, diff)
+        : await charactersApi.createRoomCharacter(roomId, diff);
       setCharacters((prev) => ({ ...prev, [p.userId]: saved }));
     } catch (err) {
-      console.warn('[session] character update failed:', err?.message);
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || 'Не удалось сохранить лист';
+      console.warn('[session] character update failed:', status, msg, err?.response?.data);
+      useToastStore.getState().error(`Лист не сохранён: ${msg}`);
       if (existing) {
         setCharacters((prev) => ({ ...prev, [p.userId]: existing }));
       } else {

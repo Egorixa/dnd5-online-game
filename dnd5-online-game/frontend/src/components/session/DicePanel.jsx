@@ -16,16 +16,16 @@ const DicePanel = ({ onRoll }) => {
   const [lastResult, setLastResult] = useState(null);
   const [rolling, setRolling] = useState(false);
 
-  const rollDice = (sides, type) => {
+  const rollDice = async (sides, type) => {
     setRolling(true);
-    setTimeout(() => {
-      const result = Math.floor(Math.random() * sides) + 1;
-      setLastResult({ type, result });
-      setRolling(false);
-      if (onRoll) {
-        onRoll({ diceType: type, result, isPublic });
+    try {
+      const res = onRoll ? await onRoll({ diceType: type, isPublic }) : null;
+      if (res && res.result != null) {
+        setLastResult({ type: res.dice || type, result: res.result });
       }
-    }, 300);
+    } finally {
+      setRolling(false);
+    }
   };
 
   return (
@@ -35,6 +35,7 @@ const DicePanel = ({ onRoll }) => {
         {DICE.map((d) => (
           <button
             key={d.type}
+            type="button"
             className={`dice-btn ${rolling ? 'dice-rolling' : ''}`}
             onClick={() => rollDice(d.sides, d.type)}
             disabled={rolling}
@@ -46,12 +47,14 @@ const DicePanel = ({ onRoll }) => {
 
       <div className="dice-mode-toggle">
         <button
+          type="button"
           className={`dice-mode-btn ${isPublic ? 'dice-mode-active' : ''}`}
           onClick={() => setIsPublic(true)}
         >
           <Eye size={14} /> Публичный
         </button>
         <button
+          type="button"
           className={`dice-mode-btn ${!isPublic ? 'dice-mode-active' : ''}`}
           onClick={() => setIsPublic(false)}
         >

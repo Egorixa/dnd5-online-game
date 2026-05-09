@@ -133,10 +133,12 @@ const MyRoomsPage = () => {
                     <Crown size={14} />
                     <span>{room.accessMode === 'PUBLIC' ? 'Публичная' : 'Приватная'}</span>
                   </div>
-                  <div className="room-card-meta-row">
-                    <Users size={14} />
-                    <span>Игроков: {room.playersCount}</span>
-                  </div>
+                  {!isFinished && (
+                    <div className="room-card-meta-row">
+                      <Users size={14} />
+                      <span>Игроков: {room.playersCount}</span>
+                    </div>
+                  )}
                   <div className="room-card-meta-row">
                     <Clock size={14} />
                     <span>{formatRelative(room.createdAt)}</span>
