@@ -15,6 +15,7 @@ public class SessionManager {
     private static final String KEY_THEME = "theme";
     private static final String KEY_ACTIVE_ROOM_ID = "active_room_id";
     private static final String KEY_ACTIVE_ROOM_CODE = "active_room_code";
+    private static final String KEY_ACTIVE_TEMPLATE_ID = "active_template_id";
 
     private final SharedPreferences prefs;
 
@@ -57,6 +58,7 @@ public class SessionManager {
                 .remove(KEY_TOKEN)
                 .remove(KEY_ACTIVE_ROOM_ID)
                 .remove(KEY_ACTIVE_ROOM_CODE)
+                .remove(KEY_ACTIVE_TEMPLATE_ID)
                 .apply();
     }
 
@@ -95,11 +97,18 @@ public class SessionManager {
         prefs.edit()
                 .remove(KEY_ACTIVE_ROOM_ID)
                 .remove(KEY_ACTIVE_ROOM_CODE)
+                .remove(KEY_ACTIVE_TEMPLATE_ID)
                 .apply();
     }
 
     public String getActiveRoomId() { return prefs.getString(KEY_ACTIVE_ROOM_ID, ""); }
     public String getActiveRoomCode() { return prefs.getString(KEY_ACTIVE_ROOM_CODE, ""); }
+
+    public void setActiveTemplateId(String templateId) {
+        prefs.edit().putString(KEY_ACTIVE_TEMPLATE_ID, templateId == null ? "" : templateId).apply();
+    }
+
+    public String getActiveTemplateId() { return prefs.getString(KEY_ACTIVE_TEMPLATE_ID, ""); }
 
     public String getThemeRaw() {
         return prefs.getString(KEY_THEME, "light");

@@ -349,6 +349,7 @@ public class GamesFragment extends Fragment {
 
     private void applyTemplateAndOpen(String roomId, String roomCode, CharacterDtos.CharacterResponse template) {
         CharacterDtos.CharacterUpsertRequest req = templateToUpsert(template);
+        final String templateId = template != null ? template.characterId : null;
         ApiClient.get(requireContext()).characters().createInRoom(roomId, req)
                 .enqueue(new Callback<CharacterDtos.CharacterResponse>() {
                     @Override
@@ -360,7 +361,9 @@ public class GamesFragment extends Fragment {
                             i.putExtra(GameRoomActivity.EXTRA_ROOM_CODE, roomCode);
                             i.putExtra(GameRoomActivity.EXTRA_ROOM_ID, roomId);
                             i.putExtra(GameRoomActivity.EXTRA_CHARACTER_ID, response.body().characterId);
-                            new SessionManager(requireContext()).setActiveRoom(roomId, roomCode);
+                            SessionManager sm = new SessionManager(requireContext());
+                            sm.setActiveRoom(roomId, roomCode);
+                            sm.setActiveTemplateId(templateId);
                             startActivity(i);
                         } else {
                             Toast.makeText(getContext(),

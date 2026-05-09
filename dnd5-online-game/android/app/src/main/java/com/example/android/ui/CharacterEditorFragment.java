@@ -46,6 +46,7 @@ public class CharacterEditorFragment extends Fragment {
 
     public static final String ARG_SERVER_CHARACTER_ID = "server_character_id";
     private static final int MAX_ATTACKS = 20;
+    private static final int MAX_SPELLS = 30;
 
     private static final String[] PROF_LABELS_3 = {"Нет", "Влд", "Комп"};
     private static final String[] PROF_LABELS_2 = {"Нет", "Влд"};
@@ -89,11 +90,13 @@ public class CharacterEditorFragment extends Fragment {
     private TextInputEditText etAllies, etTreasure, etMarks, etNotes;
 
     private TextView tvProfBonus, tvInitiativeCalc, tvHitDieTotal;
-    private TextView tvSpellClassInfo, tvSpellDcInfo, tvSpellsList;
+    private TextView tvSpellClassInfo, tvSpellDcInfo;
     private LinearLayout spellsSection;
 
     private LinearLayout attacksContainer;
     private final List<View> attackRows = new ArrayList<>();
+    private LinearLayout spellsContainer;
+    private final List<View> spellRows = new ArrayList<>();
     private static final Gson GSON = new Gson();
 
     @Nullable
@@ -123,6 +126,7 @@ public class CharacterEditorFragment extends Fragment {
         setupDropdowns();
         setupListeners();
         setupAttacks(view);
+        setupSpells(view);
 
         Bundle args = getArguments();
         roomModeRoomId = args != null ? args.getString(ARG_ROOM_ID, "") : "";
@@ -381,7 +385,6 @@ public class CharacterEditorFragment extends Fragment {
         tvHitDieTotal = view.findViewById(R.id.tv_hit_die_total);
         tvSpellClassInfo = view.findViewById(R.id.tv_spell_class_info);
         tvSpellDcInfo = view.findViewById(R.id.tv_spell_dc_info);
-        tvSpellsList = view.findViewById(R.id.tv_spells_list);
         spellsSection = view.findViewById(R.id.spells_section);
 
         int[] abilityIds = {R.id.ability_str, R.id.ability_dex, R.id.ability_con,
@@ -637,6 +640,82 @@ public class CharacterEditorFragment extends Fragment {
         public String damage = "";
     }
 
+    private void setupSpells(View root) {
+        spellsContainer = root.findViewById(R.id.spells_container);
+        Button addBtn = root.findViewById(R.id.btn_add_spell);
+        if (addBtn == null) return;
+        addBtn.setOnClickListener(v -> {
+            if (spellRows.size() >= MAX_SPELLS) {
+                Toast.makeText(getContext(), "Максимум " + MAX_SPELLS + " заклинаний", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            addSpellRow(new SpellEntry());
+        });
+    }
+
+    private void addSpellRow(SpellEntry data) {
+        if (spellsContainer == null) return;
+        View row = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_spell_row, spellsContainer, false);
+        EditText name = row.findViewById(R.id.et_spell_name);
+        EditText level = row.findViewById(R.id.et_spell_level);
+        EditText school = row.findViewById(R.id.et_spell_school);
+        EditText desc = row.findViewById(R.id.et_spell_desc);
+        CheckBox prepared = row.findViewById(R.id.cb_spell_prepared);
+        ImageButton remove = row.findViewById(R.id.btn_remove_spell);
+
+        name.setText(data.name);
+        level.setText(String.valueOf(data.level));
+        school.setText(data.school);
+        desc.setText(data.description);
+        prepared.setChecked(data.prepared);
+
+        remove.setOnClickListener(v -> {
+            spellsContainer.removeView(row);
+            spellRows.remove(row);
+        });
+
+        spellsContainer.addView(row);
+        spellRows.add(row);
+    }
+
+    private String collectSpellsJson() {
+        List<SpellEntry> list = new ArrayList<>();
+        for (View row : spellRows) {
+            SpellEntry e = new SpellEntry();
+            e.name = textOf((EditText) row.findViewById(R.id.et_spell_name));
+            if (e.name.length() > 80) e.name = e.name.substring(0, 80);
+            e.level = clamp(parseInt(textOf((EditText) row.findViewById(R.id.et_spell_level)), 0), 0, 9);
+            e.school = textOf((EditText) row.findViewById(R.id.et_spell_school));
+            e.description = textOf((EditText) row.findViewById(R.id.et_spell_desc));
+            e.prepared = ((CheckBox) row.findViewById(R.id.cb_spell_prepared)).isChecked();
+            if (TextUtils.isEmpty(e.name) && TextUtils.isEmpty(e.description)
+                    && TextUtils.isEmpty(e.school) && e.level == 0 && !e.prepared) continue;
+            list.add(e);
+            if (list.size() >= MAX_SPELLS) break;
+        }
+        return GSON.toJson(list);
+    }
+
+    private void loadSpellsJson(String json) {
+        if (TextUtils.isEmpty(json)) return;
+        try {
+            Type t = new TypeToken<List<SpellEntry>>() {}.getType();
+            List<SpellEntry> list = GSON.fromJson(json, t);
+            if (list == null) return;
+            for (SpellEntry e : list) addSpellRow(e);
+        } catch (Exception ignored) {
+        }
+    }
+
+    public static class SpellEntry {
+        public String name = "";
+        public int level = 0;
+        public String school = "";
+        public String description = "";
+        public boolean prepared = false;
+    }
+
     private void fillFromCharacter(Character c) {
         suppressWatchers = true;
         try {
@@ -720,6 +799,7 @@ public class CharacterEditorFragment extends Fragment {
         etNotes.setText(c.additionalNotes);
 
         loadAttacksJson(c.attacksJson);
+        loadSpellsJson(c.spellsJson);
     }
 
     private static void applyDeathChecks(int n, CheckBox a, CheckBox b, CheckBox c) {
@@ -844,6 +924,7 @@ public class CharacterEditorFragment extends Fragment {
         c.additionalNotes = textOf(etNotes);
 
         c.attacksJson = collectAttacksJson();
+        c.spellsJson = collectSpellsJson();
 
         c.spellcastingClass = DndData.isSpellcaster(c.characterClass) ? c.characterClass : "";
         c.spellcastingAbility = DndData.spellAbilityForClass(c.characterClass);

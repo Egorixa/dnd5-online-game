@@ -148,6 +148,16 @@ public class CharactersFragment extends Fragment {
     }
 
     private void deleteCharacter(Character c) {
+        if (!android.text.TextUtils.isEmpty(session.getActiveRoomId())
+                && !android.text.TextUtils.isEmpty(c.serverCharacterId)
+                && c.serverCharacterId.equals(session.getActiveTemplateId())) {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Нельзя удалить")
+                    .setMessage("Этот шаблон используется в активной комнате. Сначала выйдите из комнаты.")
+                    .setPositiveButton("OK", null)
+                    .show();
+            return;
+        }
         if (session.hasServerSession() && !android.text.TextUtils.isEmpty(c.serverCharacterId)) {
             ApiClient.get(requireContext()).characters()
                     .deleteTemplate(c.serverCharacterId)

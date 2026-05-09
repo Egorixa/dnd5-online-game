@@ -130,6 +130,24 @@
                 android:layout_width="0dp" android:layout_columnWeight="1"/>
         </GridLayout>
 
+        <!-- ──────────── Спасброски (владение) ──────────── -->
+        <TextView android:text="Спасброски (владение)" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:id="@+id/saves_container"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+        <!-- ──────────── Навыки ──────────── -->
+        <TextView android:text="Навыки (владение)" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout android:id="@+id/skills_container"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
         <!-- ──────────── Боевые параметры ──────────── -->
         <TextView android:text="Боевые параметры" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
@@ -230,8 +248,9 @@
             android:layout_marginTop="4dp"/>
 
         <!-- Спасброски от смерти -->
-        <TextView android:text="Спасброски от смерти" style="@style/HeaderTextStyle"
-            android:layout_marginTop="16dp"
+        <TextView android:text="Спасброски от смерти"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
         <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
@@ -268,23 +287,58 @@
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Вдохновение" android:layout_marginTop="8dp"/>
 
-        <!-- ──────────── Спасброски ──────────── -->
-        <TextView android:text="Спасброски (владение)" style="@style/HeaderTextStyle"
+        <!-- ──────────── Атаки ──────────── -->
+        <TextView android:text="Атаки (до 20 строк)" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
-        <LinearLayout android:id="@+id/saves_container"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingStart="4dp" android:paddingEnd="4dp">
+            <TextView android:layout_width="0dp" android:layout_weight="3" android:layout_height="wrap_content"
+                android:text="Название" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:text="Бонус" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:layout_width="0dp" android:layout_weight="3" android:layout_height="wrap_content"
+                android:text="Урон/эффект" android:textStyle="bold" android:textSize="12sp"/>
+            <View android:layout_width="32dp" android:layout_height="1dp"/>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/attacks_container"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical"/>
 
-        <!-- ──────────── Навыки ──────────── -->
-        <TextView android:text="Навыки (владение)" style="@style/HeaderTextStyle"
-            android:layout_marginTop="16dp"
+        <Button android:id="@+id/btn_add_attack"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="+ Добавить атаку"
+            android:layout_marginTop="4dp"/>
+
+        <!-- ──────────── Заклинания ──────────── -->
+        <TextView android:id="@+id/tv_spells_header" android:text="Заклинания"
+            style="@style/HeaderTextStyle" android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
-        <LinearLayout android:id="@+id/skills_container"
+        <LinearLayout android:id="@+id/spells_section"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical"/>
+            android:orientation="vertical" android:visibility="gone">
+
+            <TextView android:id="@+id/tv_spell_class_info"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textStyle="bold"/>
+
+            <TextView android:id="@+id/tv_spell_dc_info"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"/>
+
+            <LinearLayout android:id="@+id/spells_container"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"/>
+
+            <Button android:id="@+id/btn_add_spell"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="+ Добавить заклинание"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
 
         <!-- ──────────── Снаряжение и валюта ──────────── -->
         <TextView android:text="Снаряжение" style="@style/HeaderTextStyle"
@@ -493,55 +547,6 @@
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
         </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- ──────────── Атаки и заклинания (до 20 строк) ──────────── -->
-        <TextView android:text="Атаки и заклинания (до 20 строк)" style="@style/HeaderTextStyle"
-            android:layout_marginTop="16dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:paddingStart="4dp" android:paddingEnd="4dp">
-            <TextView android:layout_width="0dp" android:layout_weight="3" android:layout_height="wrap_content"
-                android:text="Название" android:textStyle="bold" android:textSize="12sp"/>
-            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:text="Бонус" android:textStyle="bold" android:textSize="12sp"/>
-            <TextView android:layout_width="0dp" android:layout_weight="3" android:layout_height="wrap_content"
-                android:text="Урон/эффект" android:textStyle="bold" android:textSize="12sp"/>
-            <View android:layout_width="32dp" android:layout_height="1dp"/>
-        </LinearLayout>
-
-        <LinearLayout android:id="@+id/attacks_container"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical"/>
-
-        <Button android:id="@+id/btn_add_attack"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="+ Добавить атаку/заклинание"
-            android:layout_marginTop="4dp"/>
-
-        <!-- ──────────── Заклинания ──────────── -->
-        <TextView android:id="@+id/tv_spells_header" android:text="Заклинания"
-            style="@style/HeaderTextStyle" android:layout_marginTop="16dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-
-        <LinearLayout android:id="@+id/spells_section"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:visibility="gone">
-
-            <TextView android:id="@+id/tv_spell_class_info"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:textStyle="bold"/>
-
-            <TextView android:id="@+id/tv_spell_dc_info"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"/>
-
-            <TextView android:id="@+id/tv_spells_list"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Заклинания пока не добавлены"
-                android:textStyle="italic"/>
-        </LinearLayout>
 
         <Button android:id="@+id/btn_save_char"
             android:layout_width="match_parent" android:layout_height="wrap_content"

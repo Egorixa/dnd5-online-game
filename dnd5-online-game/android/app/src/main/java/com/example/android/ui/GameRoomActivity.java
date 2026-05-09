@@ -253,6 +253,7 @@ public class GameRoomActivity extends AppCompatActivity
     private void applyTemplateToRoom(CharacterDtos.CharacterResponse template) {
         if (TextUtils.isEmpty(roomId)) return;
         CharacterDtos.CharacterUpsertRequest req = templateToUpsert(template);
+        final String templateId = template != null ? template.characterId : null;
         ApiClient.get(this).characters().createInRoom(roomId, req)
                 .enqueue(new Callback<CharacterDtos.CharacterResponse>() {
                     @Override
@@ -260,6 +261,8 @@ public class GameRoomActivity extends AppCompatActivity
                                            Response<CharacterDtos.CharacterResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             activeCharacterId = response.body().characterId;
+                            new com.example.android.data.SessionManager(GameRoomActivity.this)
+                                    .setActiveTemplateId(templateId);
                             Toast.makeText(GameRoomActivity.this,
                                     "Персонаж добавлен в комнату",
                                     Toast.LENGTH_SHORT).show();

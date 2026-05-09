@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="6dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <CheckBox
+                android:id="@+id/cb_spell_prepared"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Подгот."/>
+
+            <EditText
+                android:id="@+id/et_spell_name"
+                android:layout_width="0dp"
+                android:layout_weight="3"
+                android:layout_height="wrap_content"
+                android:hint="Название"
+                android:textSize="14sp"
+                android:layout_marginStart="4dp"
+                android:maxLength="80"/>
+
+            <EditText
+                android:id="@+id/et_spell_level"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:hint="Ур."
+                android:textSize="13sp"
+                android:layout_marginStart="2dp"
+                android:inputType="number"/>
+
+            <ImageButton
+                android:id="@+id/btn_remove_spell"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_delete"
+                android:background="?attr/selectableItemBackground"
+                android:contentDescription="Удалить"/>
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/et_spell_school"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Школа (вызов, ограждение, …)"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            android:maxLength="50"/>
+
+        <EditText
+            android:id="@+id/et_spell_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Описание / эффект"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            android:inputType="textMultiLine"
+            android:minLines="1"
+            android:maxLength="500"/>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -48,13 +48,22 @@
             android:text="События комнаты"/>
 
         <TextView
-            android:id="@+id/tv_ri_events_log"
+            android:id="@+id/tv_ri_events_empty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:padding="8dp"
-            android:minHeight="120dp"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:alpha="0.6"
+            android:text="Пока нет событий"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_ri_events"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"/>
 
         <Button
             android:id="@+id/btn_ri_leave"
