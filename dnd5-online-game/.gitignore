@@ -1,10 +1,16 @@
-# Android
+# Common
+.DS_Store
+.idea/
+.idea
+.vscode/
+*.swp
+*.log
 *.iml
+
+# Android
 .gradle
 /local.properties
-.idea
 /.idea/assetWizardSettings.xml
-.DS_Store
 /build
 /captures
 .externalNativeBuild
@@ -22,6 +28,11 @@ local.properties
 bin/
 obj/
 
-# Docker / Logs
-*.log
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+
+# Misc
 backend/.DS_Store
