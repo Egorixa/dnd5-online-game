@@ -152,18 +152,34 @@ const SessionPage = () => {
           fetchRoomState(roomId);
           reloadCharacters();
         }),
-        onSessionEvent(conn, SESSION_EVENTS.CHARACTER_UPDATED, (data) => {
-          if (data?.ownerUserId) {
-            setCharacters((prev) => ({ ...prev, [data.ownerUserId]: data }));
+        onSessionEvent(conn, SESSION_EVENTS.CHARACTER_UPDATED, (payload) => {
+          const action = payload?.action;
+          const character = payload?.character ?? (payload?.ownerUserId ? payload : null);
+          const ownerUserId = character?.ownerUserId ?? payload?.ownerUserId;
+          const charName = payload?.characterName || character?.name;
+          const ownerName = payload?.ownerUserName;
+
+          if (action === 'deleted') {
+            if (ownerUserId) {
+              setCharacters((prev) => {
+                const next = { ...prev };
+                delete next[ownerUserId];
+                return next;
+              });
+            }
+          } else if (character && ownerUserId) {
+            setCharacters((prev) => ({ ...prev, [ownerUserId]: character }));
           }
-          const charName = data?.characterName || data?.name;
-          const ownerName = data?.ownerUserName;
+
           const who = charName && ownerName
             ? `${charName} (${ownerName})`
             : charName || ownerName || null;
+          const verb = action === 'created' ? 'создан'
+            : action === 'deleted' ? 'удалён'
+            : 'обновлён';
           addEvent({
             type: 'system',
-            text: who ? `Лист персонажа обновлён: ${who}` : 'Лист персонажа обновлён',
+            text: who ? `Лист персонажа ${verb}: ${who}` : `Лист персонажа ${verb}`,
           });
           fetchRoomState(roomId);
           reloadCharacters();
