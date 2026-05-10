@@ -53,4 +53,36 @@ public interface CharactersApi {
     @DELETE("rooms/{roomId}/characters/{characterId}")
     Call<Void> deleteInRoom(@Path("roomId") String roomId,
                             @Path("characterId") String characterId);
+
+    @POST("rooms/{roomId}/characters/{characterId}/attacks")
+    Call<CharacterDtos.AttackDto> addAttack(@Path("roomId") String roomId,
+                                            @Path("characterId") String characterId,
+                                            @Body CharacterDtos.AttackDto body);
+
+    @HTTP(method = "PUT", path = "rooms/{roomId}/characters/{characterId}/attacks/{attackId}", hasBody = true)
+    Call<CharacterDtos.AttackDto> updateAttack(@Path("roomId") String roomId,
+                                               @Path("characterId") String characterId,
+                                               @Path("attackId") String attackId,
+                                               @Body CharacterDtos.AttackDto body);
+
+    @DELETE("rooms/{roomId}/characters/{characterId}/attacks/{attackId}")
+    Call<Void> deleteAttack(@Path("roomId") String roomId,
+                            @Path("characterId") String characterId,
+                            @Path("attackId") String attackId);
+
+    @POST("rooms/{roomId}/characters/{characterId}/spells")
+    Call<CharacterDtos.SpellDto> addSpell(@Path("roomId") String roomId,
+                                          @Path("characterId") String characterId,
+                                          @Body CharacterDtos.SpellDto body);
+
+    @HTTP(method = "PUT", path = "rooms/{roomId}/characters/{characterId}/spells/{spellId}", hasBody = true)
+    Call<CharacterDtos.SpellDto> updateSpell(@Path("roomId") String roomId,
+                                             @Path("characterId") String characterId,
+                                             @Path("spellId") String spellId,
+                                             @Body CharacterDtos.SpellDto body);
+
+    @DELETE("rooms/{roomId}/characters/{characterId}/spells/{spellId}")
+    Call<Void> deleteSpell(@Path("roomId") String roomId,
+                           @Path("characterId") String characterId,
+                           @Path("spellId") String spellId);
 }
