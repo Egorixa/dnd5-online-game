@@ -553,11 +553,12 @@ public class CharacterEditorFragment extends Fragment {
 
     private void recalcSpellInfo() {
         String cls = spinnerClass.getText() != null ? spinnerClass.getText().toString() : "";
+        spellsSection.setVisibility(View.VISIBLE);
         if (!DndData.isSpellcaster(cls)) {
-            spellsSection.setVisibility(View.GONE);
+            tvSpellClassInfo.setText("Класс: " + (cls.isEmpty() ? "—" : cls) + " · не является заклинателем");
+            tvSpellDcInfo.setText("");
             return;
         }
-        spellsSection.setVisibility(View.VISIBLE);
         String ability = DndData.spellAbilityForClass(cls);
         int level = clamp(parseInt(etLevel.getText().toString(), 1), 1, 20);
         int prof = Character.proficiencyBonus(level);
