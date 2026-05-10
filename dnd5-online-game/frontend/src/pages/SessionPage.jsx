@@ -202,6 +202,7 @@ const SessionPage = () => {
             ? `${charName} (${userName})`
             : charName || userName || 'Игрок';
           if (dice === 'magic_ball' || roll.magicBallAnswer) {
+            if (roll.actorUserId && user?.userId && roll.actorUserId === user.userId) return;
             addEvent({
               type: 'system',
               text: `Магический шар (${who}): «${roll.magicBallAnswer || '—'}»`,
@@ -267,7 +268,11 @@ const SessionPage = () => {
         dice: 'MAGIC_BALL',
         mode: 'PUBLIC',
       });
-      return data?.magicBallAnswer || null;
+      const answer = data?.magicBallAnswer || null;
+      if (answer) {
+        addEvent({ type: 'system', text: `🎱 Магический шар: «${answer}»` });
+      }
+      return answer;
     } catch (err) {
       addEvent({ type: 'system', text: `Ошибка магического шара: ${extractApiError(err) || err.message}` });
       return null;

@@ -1500,16 +1500,17 @@ html[data-offline='true'] body {
 .check-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 0;
-    font-size: 0.9rem;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 0.85rem;
 }
 
 .proficiency-select {
     flex: 0 0 auto;
-    min-width: 130px;
-    padding: 4px 8px;
-    font-size: 0.85rem;
+    width: 92px;
+    padding: 2px 4px;
+    font-size: 0.8rem;
+    line-height: 1.2;
 }
 
 .check-label {
@@ -1540,7 +1541,6 @@ html[data-offline='true'] body {
 .check-ability {
     font-size: 0.75rem;
     color: var(--text-secondary);
-    margin-left: auto;
 }
 
 .combat-grid {
