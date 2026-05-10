@@ -572,7 +572,7 @@ namespace Characters.Application.Services
                 foreach (var a in r.Attacks)
                     c.Attacks.Add(new Attack
                     {
-                        AttackId = a.AttackId ?? Guid.NewGuid(),
+                        AttackId = Guid.NewGuid(),
                         CharacterId = c.CharacterId,
                         Name = a.Name,
                         AttackBonus = a.AttackBonus,
@@ -586,7 +586,7 @@ namespace Characters.Application.Services
                 foreach (var s in r.Spells)
                     c.Spells.Add(new Spell
                     {
-                        SpellId = s.SpellId ?? Guid.NewGuid(),
+                        SpellId = Guid.NewGuid(),
                         CharacterId = c.CharacterId,
                         Name = s.Name,
                         Level = s.Level,
