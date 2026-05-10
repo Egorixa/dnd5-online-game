@@ -84,8 +84,6 @@ namespace Characters.Application.Validators
                 });
             });
 
-            When(x => x.SpellSlotsTotal.HasValue, () => RuleFor(x => x.SpellSlotsTotal!.Value).InclusiveBetween(0, 99));
-            When(x => x.SpellSlotsUsed.HasValue, () => RuleFor(x => x.SpellSlotsUsed!.Value).InclusiveBetween(0, 99));
             When(x => x.PreparedLimit.HasValue, () => RuleFor(x => x.PreparedLimit!.Value).InclusiveBetween(0, 99));
         }
     }
