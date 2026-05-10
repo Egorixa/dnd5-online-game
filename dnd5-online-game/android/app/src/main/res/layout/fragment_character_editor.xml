@@ -29,15 +29,6 @@
                 android:maxLength="50"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Имя игрока">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_player_name"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:maxLength="50"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
         <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -317,13 +308,13 @@
             style="@style/HeaderTextStyle" android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
+        <TextView android:id="@+id/tv_spell_class_info"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textStyle="bold"/>
+
         <LinearLayout android:id="@+id/spells_section"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <TextView android:id="@+id/tv_spell_class_info"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:textStyle="bold"/>
 
             <TextView android:id="@+id/tv_spell_dc_info"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -452,12 +443,18 @@
                 android:inputType="textMultiLine" android:minLines="3" android:maxLength="3000"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- ──────────── Предыстория ──────────── -->
+        <TextView android:text="Предыстория" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" android:hint="Предыстория персонажа">
+            android:hint="Предыстория персонажа">
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_backstory"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:inputType="textMultiLine" android:minLines="3" android:maxLength="3000"/>
+                android:inputType="textMultiLine" android:minLines="5" android:gravity="top|start"
+                android:maxLength="5000"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- ──────────── Внешность ──────────── -->

@@ -77,7 +77,7 @@ public class CharacterEditorFragment extends Fragment {
     private TextView[] abilityModTv = new TextView[6];
     private static final String[] ABILITY_LABELS = {"СИЛ", "ЛОВ", "ТЕЛ", "ИНТ", "МДР", "ХАР"};
 
-    private TextInputEditText etCharName, etPlayerName, etLevel, etXp;
+    private TextInputEditText etCharName, etLevel, etXp;
     private AutoCompleteTextView spinnerRace, spinnerClass, spinnerBackground, spinnerAlignment, spinnerHitDie;
     private TextInputEditText etAc, etInitBonus, etSpeed;
     private TextInputEditText etHpMax, etHpCur, etHpTemp, etHitDieCurrent;
@@ -328,7 +328,6 @@ public class CharacterEditorFragment extends Fragment {
 
     private void bindViews(View view) {
         etCharName = view.findViewById(R.id.et_char_name);
-        etPlayerName = view.findViewById(R.id.et_player_name);
         etLevel = view.findViewById(R.id.et_level);
         etXp = view.findViewById(R.id.et_xp);
 
@@ -553,12 +552,13 @@ public class CharacterEditorFragment extends Fragment {
 
     private void recalcSpellInfo() {
         String cls = spinnerClass.getText() != null ? spinnerClass.getText().toString() : "";
-        spellsSection.setVisibility(View.VISIBLE);
         if (!DndData.isSpellcaster(cls)) {
             tvSpellClassInfo.setText("Класс: " + (cls.isEmpty() ? "—" : cls) + " · не является заклинателем");
             tvSpellDcInfo.setText("");
+            spellsSection.setVisibility(View.GONE);
             return;
         }
+        spellsSection.setVisibility(View.VISIBLE);
         String ability = DndData.spellAbilityForClass(cls);
         int level = clamp(parseInt(etLevel.getText().toString(), 1), 1, 20);
         int prof = Character.proficiencyBonus(level);
@@ -728,7 +728,6 @@ public class CharacterEditorFragment extends Fragment {
 
     private void fillFromCharacterInternal(Character c) {
         etCharName.setText(c.characterName);
-        etPlayerName.setText(c.playerName);
         spinnerRace.setText(c.race, false);
         spinnerClass.setText(c.characterClass, false);
         spinnerBackground.setText(c.background, false);
@@ -830,7 +829,8 @@ public class CharacterEditorFragment extends Fragment {
             return;
         }
         c.characterName = name;
-        c.playerName = textOf(etPlayerName);
+        String accountName = new SessionManager(requireContext()).getUsername();
+        c.playerName = TextUtils.isEmpty(accountName) ? "" : accountName;
 
         c.race = textOf(spinnerRace);
         c.characterClass = textOf(spinnerClass);

@@ -132,6 +132,38 @@ public class GamesFragment extends Fragment {
             i.putExtra(GameRoomActivity.EXTRA_ROOM_CODE, fRoomCode);
             startActivity(i);
         });
+
+        String myUserId = sm.getServerUserId();
+        ApiClient.get(requireContext()).characters().listInRoom(roomId)
+                .enqueue(new Callback<CharactersApi.CharactersListResponse>() {
+                    @Override
+                    public void onResponse(Call<CharactersApi.CharactersListResponse> call,
+                                           Response<CharactersApi.CharactersListResponse> response) {
+                        if (!isAdded()) return;
+                        if (!response.isSuccessful() || response.body() == null
+                                || response.body().characters == null) return;
+                        String myCharName = null;
+                        for (CharacterDtos.CharacterResponse c : response.body().characters) {
+                            if (c == null) continue;
+                            if (myUserId != null && !myUserId.isEmpty()
+                                    && c.ownerUserId != null && myUserId.equals(c.ownerUserId)) {
+                                myCharName = c.name;
+                                break;
+                            }
+                        }
+                        if (myCharName == null && !response.body().characters.isEmpty()) {
+                            myCharName = response.body().characters.get(0).name;
+                        }
+                        String displayName = (myCharName == null || myCharName.trim().isEmpty())
+                                ? "—" : myCharName;
+                        tvCode.setText("Лист: " + displayName + "\nКод: "
+                                + (TextUtils.isEmpty(fRoomCode) ? "—" : fRoomCode));
+                    }
+
+                    @Override
+                    public void onFailure(Call<CharactersApi.CharactersListResponse> call, Throwable t) {
+                    }
+                });
     }
 
     private boolean isApiAvailable() {
@@ -195,6 +227,10 @@ public class GamesFragment extends Fragment {
         boolean sameRoom = (!TextUtils.isEmpty(activeRoomCode) && activeRoomCode.equalsIgnoreCase(code))
                 || (!TextUtils.isEmpty(targetRoomId) && !TextUtils.isEmpty(activeRoomId)
                         && targetRoomId.equals(activeRoomId));
+        if (!TextUtils.isEmpty(activeRoomId) && sameRoom) {
+            openRoom(activeRoomId, TextUtils.isEmpty(activeRoomCode) ? code : activeRoomCode);
+            return;
+        }
         if (!TextUtils.isEmpty(activeRoomId) && !sameRoom) {
             new AlertDialog.Builder(requireContext())
                     .setTitle("Вы уже в комнате")
