@@ -35,7 +35,6 @@ const SavingThrows = ({ data, onChange }) => {
               >
                 <option value="None">Нет</option>
                 <option value="Proficient">Владение</option>
-                <option value="Expertise">Мастерство</option>
               </select>
               <span className="check-bonus">{formatModifier(bonus)}</span>
               <span className="check-name">{st.label}</span>

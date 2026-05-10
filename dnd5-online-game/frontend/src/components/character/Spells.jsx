@@ -30,7 +30,14 @@ const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, play
     timersRef.current.clear();
   }, []);
 
-  if (!canCastSpells(classValue)) return null;
+  if (!canCastSpells(classValue)) {
+    return (
+      <div className="sheet-section">
+        <h3 className="section-title">Заклинания</h3>
+        <p className="section-hint">Этот класс не является заклинателем.</p>
+      </div>
+    );
+  }
 
   const spellAbility = getSpellAbility(classValue);
   const abilityScore = data[spellAbility] || 10;

@@ -44,7 +44,7 @@ const Skills = ({ data, onChange }) => {
               >
                 <option value="None">Нет</option>
                 <option value="Proficient">Владение</option>
-                <option value="Expertise">Мастерство</option>
+                <option value="Expertise">Компетентность</option>
               </select>
               <span className="check-bonus">{formatModifier(bonus)}</span>
               <span className="check-name">{skill.label}</span>
