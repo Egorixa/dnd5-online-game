@@ -126,13 +126,15 @@ public final class CharacterMapper {
     };
 
     public static String profLevelToKey(int level) {
-        return level >= 1
-                ? CharacterDtos.ProficiencyLevel.PROFICIENT
-                : CharacterDtos.ProficiencyLevel.NONE;
+        if (level >= 2) return CharacterDtos.ProficiencyLevel.EXPERTISE;
+        if (level >= 1) return CharacterDtos.ProficiencyLevel.PROFICIENT;
+        return CharacterDtos.ProficiencyLevel.NONE;
     }
 
     public static int profLevelFromKey(String key) {
-        return CharacterDtos.ProficiencyLevel.PROFICIENT.equalsIgnoreCase(key) ? 1 : 0;
+        if (CharacterDtos.ProficiencyLevel.EXPERTISE.equalsIgnoreCase(key)) return 2;
+        if (CharacterDtos.ProficiencyLevel.PROFICIENT.equalsIgnoreCase(key)) return 1;
+        return 0;
     }
 
     public static CharacterDtos.CharacterUpsertRequest toUpsert(Character c) {

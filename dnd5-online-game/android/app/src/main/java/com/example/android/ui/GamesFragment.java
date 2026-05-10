@@ -460,8 +460,7 @@ public class GamesFragment extends Fragment {
         }
         r.attacks = t.attacks;
         r.spellcastingClass = t.spellcastingClass;
-        r.spellSlotsTotal = t.spellSlotsTotal;
-        r.spellSlotsUsed = t.spellSlotsUsed;
+        r.spellSlots = t.spellSlots;
         r.preparedLimit = t.preparedLimit;
         r.spells = t.spells;
         return r;

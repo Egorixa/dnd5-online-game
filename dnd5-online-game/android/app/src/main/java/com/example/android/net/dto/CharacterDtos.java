@@ -109,6 +109,7 @@ public class CharacterDtos {
     public static final class ProficiencyLevel {
         public static final String NONE = "None";
         public static final String PROFICIENT = "Proficient";
+        public static final String EXPERTISE = "Expertise";
         private ProficiencyLevel() {}
     }
 
@@ -174,8 +175,7 @@ public class CharacterDtos {
         public List<AttackDto> attacks;
 
         public String spellcastingClass;
-        public Integer spellSlotsTotal;
-        public Integer spellSlotsUsed;
+        public Map<Integer, SpellSlotDto> spellSlots;
         public Integer preparedLimit;
         public List<SpellDto> spells;
 
@@ -200,6 +200,11 @@ public class CharacterDtos {
         public String duration;
         public String description;
         public boolean prepared;
+    }
+
+    public static class SpellSlotDto {
+        public int total;
+        public int used;
     }
 
     public static class CharacterResponse {
@@ -275,8 +280,7 @@ public class CharacterDtos {
         public List<AttackDto> attacks;
 
         public String spellcastingClass;
-        public int spellSlotsTotal;
-        public int spellSlotsUsed;
+        public Map<Integer, SpellSlotDto> spellSlots;
         public int preparedLimit;
         public List<SpellDto> spells;
     }
