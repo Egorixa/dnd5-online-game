@@ -121,8 +121,8 @@
                 android:layout_width="0dp" android:layout_columnWeight="1"/>
         </GridLayout>
 
-        <!-- ──────────── Спасброски (владение) ──────────── -->
-        <TextView android:text="Спасброски (владение)" style="@style/HeaderTextStyle"
+        <!-- ──────────── Спасброски ──────────── -->
+        <TextView android:text="Спасброски" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
@@ -131,7 +131,7 @@
             android:orientation="vertical"/>
 
         <!-- ──────────── Навыки ──────────── -->
-        <TextView android:text="Навыки (владение)" style="@style/HeaderTextStyle"
+        <TextView android:text="Навыки" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
@@ -279,7 +279,7 @@
             android:text="Вдохновение" android:layout_marginTop="8dp"/>
 
         <!-- ──────────── Атаки ──────────── -->
-        <TextView android:text="Атаки (до 20 строк)" style="@style/HeaderTextStyle"
+        <TextView android:text="Атаки" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
@@ -399,8 +399,8 @@
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
-        <!-- ──────────── Черты личности и заметки ──────────── -->
-        <TextView android:text="Черты личности и предыстория" style="@style/HeaderTextStyle"
+        <!-- ──────────── Черты личности ──────────── -->
+        <TextView android:text="Черты личности" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
@@ -441,20 +441,6 @@
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_features"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:inputType="textMultiLine" android:minLines="3" android:maxLength="3000"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- ──────────── Предыстория ──────────── -->
-        <TextView android:text="Предыстория" style="@style/HeaderTextStyle"
-            android:layout_marginTop="16dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Предыстория персонажа">
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_backstory"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:inputType="textMultiLine" android:minLines="5" android:gravity="top|start"
-                android:maxLength="5000"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- ──────────── Внешность ──────────── -->
@@ -515,7 +501,34 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" android:hint="Союзники и организации">
+            android:layout_marginTop="8dp" android:hint="Отличительные черты">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_marks"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ──────────── Предыстория ──────────── -->
+        <TextView android:text="Предыстория" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Предыстория персонажа">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_backstory"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textMultiLine" android:minLines="5" android:gravity="top|start"
+                android:maxLength="5000"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ──────────── Прочее ──────────── -->
+        <TextView android:text="Прочее" style="@style/HeaderTextStyle"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Союзники и организации">
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_allies"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
@@ -525,14 +538,6 @@
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="8dp" android:hint="Сокровища">
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_treasure"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" android:hint="Отличительные черты">
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_marks"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:inputType="textMultiLine" android:minLines="2" android:maxLength="1500"/>
         </com.google.android.material.textfield.TextInputLayout>

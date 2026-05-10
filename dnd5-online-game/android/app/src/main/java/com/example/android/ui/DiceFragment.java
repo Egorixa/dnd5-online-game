@@ -154,12 +154,17 @@ public class DiceFragment extends Fragment {
     }
 
     private void shakeMagicBall() {
-        String answer = MAGIC_BALL_ANSWERS[random.nextInt(MAGIC_BALL_ANSWERS.length)];
-        if (tvMagicAnswer != null) {
-            tvMagicAnswer.setVisibility(View.VISIBLE);
-            tvMagicAnswer.setText("🎱 " + answer);
+        String roomId = session.getActiveRoomId();
+        if (!TextUtils.isEmpty(roomId) && session.hasServerSession()) {
+            rollServer(roomId, DiceDtos.DiceKind.MAGIC_BALL, 0);
+        } else {
+            String answer = MAGIC_BALL_ANSWERS[random.nextInt(MAGIC_BALL_ANSWERS.length)];
+            if (tvMagicAnswer != null) {
+                tvMagicAnswer.setVisibility(View.VISIBLE);
+                tvMagicAnswer.setText("🎱 " + answer);
+            }
+            appendLog(tf.format(new Date()) + "  Магический шар → " + answer);
         }
-        appendLog(tf.format(new Date()) + "  Магический шар → " + answer);
     }
 
     private void rollServer(String roomId, String kind, int sides) {
@@ -180,6 +185,15 @@ public class DiceFragment extends Fragment {
                             return;
                         }
                         DiceDtos.DiceRollResponse r = response.body();
+                        if (!TextUtils.isEmpty(r.magicBallAnswer)) {
+                            if (tvMagicAnswer != null) {
+                                tvMagicAnswer.setVisibility(View.VISIBLE);
+                                tvMagicAnswer.setText("🎱 " + r.magicBallAnswer);
+                            }
+                            appendLog(tf.format(new Date()) + "  " + selfLabel()
+                                    + ": Магический шар → " + r.magicBallAnswer);
+                            return;
+                        }
                         String diceLabel = (r.dice != null && r.dice.startsWith("d")) ? r.dice : kind;
                         StringBuilder line = new StringBuilder(tf.format(new Date()))
                                 .append("  ").append(selfLabel())
