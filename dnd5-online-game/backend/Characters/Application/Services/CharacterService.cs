@@ -86,7 +86,7 @@ namespace Characters.Application.Services
                 Damage = dto.Damage
             };
 
-            character.Attacks.Add(attack);
+            _context.Set<Attack>().Add(attack);
 
             await _context.SaveChangesAsync(ct);
 
@@ -191,7 +191,7 @@ namespace Characters.Application.Services
                 Prepared = dto.Prepared
             };
 
-            character.Spells.Add(spell);
+            _context.Set<Spell>().Add(spell);
 
             await _context.SaveChangesAsync(ct);
 
