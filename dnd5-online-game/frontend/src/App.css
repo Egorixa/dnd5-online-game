@@ -1507,8 +1507,8 @@ html[data-offline='true'] body {
 
 .proficiency-select {
     flex: 0 0 auto;
-    width: 92px;
-    padding: 2px 4px;
+    width: 140px;
+    padding: 2px 24px 2px 6px;
     font-size: 0.8rem;
     line-height: 1.2;
 }
@@ -1730,6 +1730,9 @@ html[data-offline='true'] body {
 
 .spell-level-select {
     width: 100px !important;
+}
+.spell-school-input {
+    width: 130px !important;
 }
 
 .spell-prepared {

@@ -12,20 +12,53 @@ import Spells from '../character/Spells';
 
 const rollD20 = () => 1 + Math.floor(Math.random() * 20);
 
-const parseDamage = (formula) => {
-  if (!formula) return null;
-  const m = /(\d+)\s*d\s*(\d+)\s*(?:([+-])\s*(\d+))?/i.exec(formula);
-  if (!m) return null;
-  const n = Math.min(parseInt(m[1], 10) || 1, 20);
-  const sides = parseInt(m[2], 10) || 6;
-  const sign = m[3] === '-' ? -1 : 1;
-  const mod = m[4] ? sign * parseInt(m[4], 10) : 0;
+const parseDamage = (formula, data) => {
+  if (!formula || typeof formula !== 'string') return null;
+  let cleaned = formula.replace(/\s+/g, '').toLowerCase();
+  if (!cleaned) return null;
+
+  if (data) {
+    const calcMod = (score) => Math.floor(((score || 10) - 10) / 2);
+    const stats = {
+      str: calcMod(data.strength),
+      dex: calcMod(data.dexterity),
+      con: calcMod(data.constitution),
+      int: calcMod(data.intelligence),
+      wis: calcMod(data.wisdom),
+      cha: calcMod(data.charisma),
+    };
+    for (const [key, val] of Object.entries(stats)) {
+      cleaned = cleaned.replace(new RegExp(key, 'g'), val >= 0 ? `+${val}` : `${val}`);
+    }
+  }
+
+  const tokenRe = /([+-]?)(\d*)d(\d+)|([+-]?\d+)/g;
+  const groups = [];
+  let mod = 0;
+  let m;
+  let matchedAny = false;
+  while ((m = tokenRe.exec(cleaned)) !== null) {
+    matchedAny = true;
+    if (m[3] !== undefined) {
+      const sign = m[1] === '-' ? -1 : 1;
+      const n = Math.min(parseInt(m[2] || '1', 10) || 1, 20);
+      const sides = parseInt(m[3], 10) || 6;
+      if (sides < 2) continue;
+      groups.push({ sign, n, sides });
+    } else if (m[4] !== undefined) {
+      mod += parseInt(m[4], 10) || 0;
+    }
+  }
+  if (!matchedAny) return null;
+
   const rolls = [];
   let sum = 0;
-  for (let i = 0; i < n; i++) {
-    const r = 1 + Math.floor(Math.random() * sides);
-    rolls.push(r);
-    sum += r;
+  for (const g of groups) {
+    for (let i = 0; i < g.n; i++) {
+      const r = 1 + Math.floor(Math.random() * g.sides);
+      rolls.push(r);
+      sum += g.sign * r;
+    }
   }
   return { rolls, mod, total: Math.max(0, sum + mod), formula };
 };
@@ -44,12 +77,17 @@ const toData = (player) => ({
   spells: player.spells || [],
 });
 
-const fromData = (data) => ({
-  ...data,
-  characterName: data.name,
-  username: data.playerName,
-  characterClass: data.class,
-});
+const fromData = (data) => {
+  const copy = { ...data };
+  delete copy.attacks;
+  delete copy.spells;
+  return {
+    ...copy,
+    characterName: data.name,
+    username: data.playerName,
+    characterClass: data.class,
+  };
+};
 
 const DEBOUNCE_MS = 400;
 
@@ -129,19 +167,35 @@ const CharacterViewer = ({
     }, DEBOUNCE_MS);
   };
 
+  const handleLocalChange = (newData) => {
+    dirtyRef.current = true;
+    const seq = ++editSeqRef.current;
+    setData(newData);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (seq === editSeqRef.current) {
+        dirtyRef.current = false;
+      }
+    }, 600);
+  };
+
   const attacks = data.attacks;
   const attackTimersRef = useRef(new Map());
 
   const addAttack = async () => {
     if (attacks.length >= 20) return;
     const created = onAddAttack ? await onAddAttack(player.id, { name: '', attackBonus: 0, damage: '' }) : null;
-    if (created) {
-      setData((prev) => ({ ...prev, attacks: [...(prev.attacks || []), {
-        attackId: created.attackId,
-        name: created.name || '',
-        attackBonus: created.attackBonus ?? 0,
-        damage: created.damage || '',
-      }] }));
+    if (created?.attackId) {
+      setData((prev) => {
+        const existing = prev.attacks || [];
+        if (existing.some((a) => a.attackId === created.attackId)) return prev;
+        return { ...prev, attacks: [...existing, {
+          attackId: created.attackId,
+          name: created.name || '',
+          attackBonus: created.attackBonus ?? 0,
+          damage: created.damage || '',
+        }] };
+      });
     }
   };
 
@@ -158,7 +212,7 @@ const CharacterViewer = ({
 
   const updateAttack = (i, patch) => {
     const next = attacks.map((a, idx) => (idx === i ? { ...a, ...patch } : a));
-    setData((prev) => ({ ...prev, attacks: next }));
+    handleLocalChange({ ...data, attacks: next });
     const target = next[i];
     if (!target?.attackId || !onUpdateAttack) return;
     const existing = attackTimersRef.current.get(target.attackId);
@@ -183,7 +237,7 @@ const CharacterViewer = ({
     const d20 = rollD20();
     const bonus = atk.attackBonus ?? 0;
     const attackTotal = d20 + bonus;
-    const damage = parseDamage(atk.damage);
+    const damage = parseDamage(atk.damage, data);
     onAttackRoll?.({ player, attack: atk, d20, bonus, attackTotal, damage });
   };
 
@@ -280,6 +334,9 @@ const CharacterViewer = ({
                 ))}
               </tbody>
             </table>
+            <p className="section-hint" style={{ marginTop: '8px' }}>
+              Подсказка: в поле "Урон" можно использовать статы, например <code>1d8+str</code> или <code>2d6+dex</code>.
+            </p>
           </div>
         )}
       </div>
@@ -287,6 +344,7 @@ const CharacterViewer = ({
       <Spells
         data={data}
         onChange={handleChange}
+        onLocalChange={handleLocalChange}
         playerId={player.id}
         onAddSpell={onAddSpell}
         onUpdateSpell={onUpdateSpell}

@@ -221,7 +221,10 @@ const SessionPage = () => {
     );
 
     startSession(conn, roomId).then((started) => {
-      if (cancelled) return;
+      if (cancelled) {
+        if (started) disconnectSession(started, roomId);
+        return;
+      }
       if (started) signalrRef.current = started;
     });
 

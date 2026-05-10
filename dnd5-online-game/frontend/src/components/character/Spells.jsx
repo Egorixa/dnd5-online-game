@@ -19,7 +19,7 @@ const cleanLegacyLocalSlots = () => {
   try { localStorage.removeItem(LEGACY_SLOTS_KEY); } catch { /* ignore */ }
 };
 
-const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, playerId }) => {
+const Spells = ({ data, onChange, onLocalChange, onAddSpell, onUpdateSpell, onRemoveSpell, playerId }) => {
   const classValue = data.spellcastingClass || data.class;
   const timersRef = useRef(new Map());
 
@@ -70,7 +70,11 @@ const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, play
 
   const updateSpell = (index, field, value) => {
     const updated = spells.map((s, i) => i === index ? { ...s, [field]: value } : s);
-    onChange({ ...data, spells: updated });
+    if (onLocalChange) {
+      onLocalChange({ ...data, spells: updated });
+    } else {
+      onChange({ ...data, spells: updated });
+    }
     const target = updated[index];
     if (!target?.spellId || !onUpdateSpell) return;
     const existing = timersRef.current.get(target.spellId);
@@ -147,6 +151,8 @@ const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, play
                 <option key={l} value={l}>{l === 0 ? 'Заговор' : `Ур. ${l}`}</option>
               ))}
             </select>
+            <input className="form-input spell-school-input" value={spell.school || ''} maxLength={40}
+              onChange={(e) => updateSpell(i, 'school', e.target.value)} placeholder="Школа" />
             <label className="check-label spell-prepared">
               <input type="checkbox" checked={!!spell.prepared}
                 onChange={() => updateSpell(i, 'prepared', !spell.prepared)} />
