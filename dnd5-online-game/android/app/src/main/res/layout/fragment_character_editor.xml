@@ -332,7 +332,7 @@
         </LinearLayout>
 
         <!-- ──────────── Снаряжение и валюта ──────────── -->
-        <TextView android:text="Снаряжение" style="@style/HeaderTextStyle"
+        <TextView android:text="Снаряжение и валюта" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
@@ -356,12 +356,9 @@
                 android:maxLength="1000"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView android:text="Валюта" style="@style/HeaderTextStyle"
-            android:layout_marginTop="12dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-
         <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                 android:hint="ММ">
@@ -450,6 +447,32 @@
 
         <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
             android:layout_height="wrap_content">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:hint="Глаза">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_eyes"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:maxLength="30"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Кожа">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_skin"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:maxLength="30"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp" android:hint="Волосы">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_hair"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:maxLength="30"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
@@ -471,31 +494,6 @@
                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_weight"
                     android:inputType="number" android:text="0"
                     android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
-
-        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:hint="Глаза">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_eyes"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:maxLength="30"/>
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:layout_marginStart="4dp" android:hint="Кожа">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_skin"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:maxLength="30"/>
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:layout_marginStart="4dp" android:hint="Волосы">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_hair"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:maxLength="30"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
@@ -521,8 +519,8 @@
                 android:maxLength="5000"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- ──────────── Прочее ──────────── -->
-        <TextView android:text="Прочее" style="@style/HeaderTextStyle"
+        <!-- ──────────── Союзники, сокровища, заметки ──────────── -->
+        <TextView android:text="Союзники, сокровища, заметки" style="@style/HeaderTextStyle"
             android:layout_marginTop="16dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 

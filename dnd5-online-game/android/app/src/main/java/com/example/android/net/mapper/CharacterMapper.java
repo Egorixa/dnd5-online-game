@@ -218,6 +218,7 @@ public final class CharacterMapper {
         }
 
         r.attacks = parseAttacksJson(c.attacksJson);
+        r.spells = parseSpellsJson(c.spellsJson);
 
         if (c.rowVersion > 0) {
             r.rowVersion = c.rowVersion;
@@ -320,6 +321,7 @@ public final class CharacterMapper {
         }
 
         c.attacksJson = attacksToJson(resp.attacks);
+        c.spellsJson = spellsToJson(resp.spells);
 
         c.updatedAt = System.currentTimeMillis();
         return c;
@@ -347,10 +349,16 @@ public final class CharacterMapper {
             List<CharacterDtos.AttackDto> out = new java.util.ArrayList<>();
             if (raw == null) return out;
             for (AttackJson a : raw) {
+                if (a == null) continue;
+                String name = nz(a.name).trim();
+                String damage = nz(a.damage).trim();
+                if (TextUtils.isEmpty(name) || TextUtils.isEmpty(damage)) continue;
+                if (name.length() > 50) name = name.substring(0, 50);
+                if (damage.length() > 50) damage = damage.substring(0, 50);
                 CharacterDtos.AttackDto d = new CharacterDtos.AttackDto();
-                d.name = nz(a.name);
+                d.name = name;
                 d.attackBonus = a.attackBonus;
-                d.damage = nz(a.damage);
+                d.damage = damage;
                 out.add(d);
             }
             return out;
@@ -376,6 +384,63 @@ public final class CharacterMapper {
         String name = "";
         int attackBonus = 0;
         String damage = "";
+    }
+
+    private static List<CharacterDtos.SpellDto> parseSpellsJson(String json) {
+        if (TextUtils.isEmpty(json)) return new java.util.ArrayList<>();
+        try {
+            java.lang.reflect.Type t = new com.google.gson.reflect.TypeToken<
+                    List<SpellJson>>() {}.getType();
+            List<SpellJson> raw = new com.google.gson.Gson().fromJson(json, t);
+            List<CharacterDtos.SpellDto> out = new java.util.ArrayList<>();
+            if (raw == null) return out;
+            for (SpellJson s : raw) {
+                if (s == null) continue;
+                String name = nz(s.name).trim();
+                if (TextUtils.isEmpty(name)) continue;
+                CharacterDtos.SpellDto d = new CharacterDtos.SpellDto();
+                d.name = name;
+                int lvl = s.level;
+                if (lvl < 0) lvl = 0;
+                if (lvl > 9) lvl = 9;
+                d.level = lvl;
+                d.school = nz(s.school);
+                d.description = nz(s.description);
+                d.prepared = s.prepared;
+                d.castingTime = "";
+                d.range = "";
+                d.components = "";
+                d.duration = "";
+                out.add(d);
+            }
+            return out;
+        } catch (Throwable t) {
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    private static String spellsToJson(List<CharacterDtos.SpellDto> spells) {
+        if (spells == null) return "[]";
+        List<SpellJson> out = new java.util.ArrayList<>();
+        for (CharacterDtos.SpellDto s : spells) {
+            if (s == null) continue;
+            SpellJson j = new SpellJson();
+            j.name = nz(s.name);
+            j.level = s.level;
+            j.school = nz(s.school);
+            j.description = nz(s.description);
+            j.prepared = s.prepared;
+            out.add(j);
+        }
+        return new com.google.gson.Gson().toJson(out);
+    }
+
+    private static class SpellJson {
+        String name = "";
+        int level = 0;
+        String school = "";
+        String description = "";
+        boolean prepared = false;
     }
 
     private static String nullIfEmpty(String s) {
