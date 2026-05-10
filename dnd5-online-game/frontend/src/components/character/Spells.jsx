@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { canCastSpells, getSpellAbility, getSpellSaveDC, getSpellAttackBonus, formatModifier } from '../../utils/calculations';
 
@@ -9,35 +9,21 @@ const SPELL_ABILITY_RU = {
   charisma: 'Хар',
 };
 
-const SLOTS_STORAGE_KEY = 'dnd_spell_slots';
-const readSlots = (charId) => {
-  if (!charId) return {};
-  try {
-    const map = JSON.parse(localStorage.getItem(SLOTS_STORAGE_KEY) || '{}');
-    return map[charId] || {};
-  } catch { return {}; }
-};
-const writeSlots = (charId, slots) => {
-  if (!charId) return;
-  try {
-    const map = JSON.parse(localStorage.getItem(SLOTS_STORAGE_KEY) || '{}');
-    map[charId] = slots;
-    localStorage.setItem(SLOTS_STORAGE_KEY, JSON.stringify(map));
-  } catch { /* ignore */ }
-};
 const SPELL_TEMPLATE = {
   name: '', level: 0, school: '', castingTime: '', range: '',
   components: '', duration: '', description: '', prepared: false,
 };
 
+const LEGACY_SLOTS_KEY = 'dnd_spell_slots';
+const cleanLegacyLocalSlots = () => {
+  try { localStorage.removeItem(LEGACY_SLOTS_KEY); } catch { /* ignore */ }
+};
+
 const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, playerId }) => {
   const classValue = data.spellcastingClass || data.class;
   const timersRef = useRef(new Map());
-  const [localSlots, setLocalSlots] = useState(() => readSlots(data.characterId));
 
-  useEffect(() => {
-    setLocalSlots(readSlots(data.characterId));
-  }, [data.characterId]);
+  useEffect(() => { cleanLegacyLocalSlots(); }, []);
 
   useEffect(() => () => {
     timersRef.current.forEach((t) => clearTimeout(t));
@@ -53,7 +39,7 @@ const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, play
   const attackBonus = getSpellAttackBonus(level, abilityScore);
 
   const spells = data.spells || [];
-  const spellSlots = localSlots;
+  const spellSlots = data.spellSlots || {};
 
   const addSpell = async () => {
     if (spells.length >= 100) return;
@@ -101,9 +87,9 @@ const Spells = ({ data, onChange, onAddSpell, onUpdateSpell, onRemoveSpell, play
 
   const updateSlot = (lvl, field, value) => {
     const num = Math.min(99, Math.max(0, parseInt(value) || 0));
-    const next = { ...spellSlots, [lvl]: { ...spellSlots[lvl], [field]: num } };
-    setLocalSlots(next);
-    writeSlots(data.characterId, next);
+    const current = spellSlots[lvl] || { total: 0, used: 0 };
+    const next = { ...spellSlots, [lvl]: { ...current, [field]: num } };
+    onChange({ ...data, spellSlots: next });
   };
 
   return (

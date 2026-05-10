@@ -41,30 +41,64 @@ const renameKeys = (obj, map) => {
   return out;
 };
 
-const proficienciesFromBoolMap = (boolMap) => {
-  if (!boolMap || typeof boolMap !== 'object') return undefined;
+const VALID_LEVELS = new Set(['None', 'Proficient', 'Expertise']);
+const normalizeLevel = (v) => {
+  if (v === true) return 'Proficient';
+  if (typeof v === 'string' && VALID_LEVELS.has(v)) return v;
+  return 'None';
+};
+
+const proficienciesFromLevelMap = (levelMap) => {
+  if (!levelMap || typeof levelMap !== 'object') return undefined;
   const out = {};
-  for (const [k, v] of Object.entries(boolMap)) {
-    if (v) out[k] = 'Proficient';
+  for (const [k, v] of Object.entries(levelMap)) {
+    const lvl = normalizeLevel(v);
+    if (lvl !== 'None') out[k] = lvl;
   }
   return out;
 };
 
-const proficienciesToBoolMap = (profMap) => {
+const proficienciesToLevelMap = (profMap) => {
   if (!profMap || typeof profMap !== 'object') return {};
   const out = {};
   for (const [k, v] of Object.entries(profMap)) {
-    if (v && v !== 'None') out[k] = true;
+    const lvl = normalizeLevel(v);
+    if (lvl !== 'None') out[k] = lvl;
   }
   return out;
 };
 
-const viewMapToBoolMap = (viewMap) => {
+const viewMapToLevelMap = (viewMap) => {
   if (!viewMap || typeof viewMap !== 'object') return {};
   const out = {};
   for (const [k, v] of Object.entries(viewMap)) {
-    const level = v?.level ?? v;
-    if (level && level !== 'None') out[toKebabLower(k)] = true;
+    const level = normalizeLevel(v?.level ?? v);
+    if (level !== 'None') out[toKebabLower(k)] = level;
+  }
+  return out;
+};
+
+const encodeSpellSlots = (slots) => {
+  if (!slots || typeof slots !== 'object') return undefined;
+  const out = {};
+  for (const [k, v] of Object.entries(slots)) {
+    const lvl = parseInt(k);
+    if (!Number.isFinite(lvl) || lvl < 1 || lvl > 9) continue;
+    const total = Math.min(99, Math.max(0, parseInt(v?.total) || 0));
+    const used = Math.min(total, Math.max(0, parseInt(v?.used) || 0));
+    if (total === 0 && used === 0) continue;
+    out[lvl] = { total, used };
+  }
+  return out;
+};
+
+const decodeSpellSlots = (slots) => {
+  if (!slots || typeof slots !== 'object') return {};
+  const out = {};
+  for (const [k, v] of Object.entries(slots)) {
+    const lvl = parseInt(k);
+    if (!Number.isFinite(lvl) || lvl < 1 || lvl > 9) continue;
+    out[lvl] = { total: v?.total ?? 0, used: v?.used ?? 0 };
   }
   return out;
 };
@@ -92,20 +126,22 @@ const STRIP_FIELDS = ['rowVersion', 'characterId', 'roomId', 'ownerUserId',
   'role', 'class', 'attacks', 'spells', 'notes', 'characterName',
   // response-only / auto-computed
   'modifiers', 'proficiencyBonus', 'passivePerception', 'spellSaveDc',
-  'spellAttackBonus', 'hitDiceTotal', 'saves',
-  // frontend-only
-  'spellSlots'];
+  'spellAttackBonus', 'hitDiceTotal', 'saves'];
 
 const encodeOutgoing = (data) => {
   if (!data || typeof data !== 'object') return data;
   let out = { ...data };
   if (out.skills) {
-    out.skillProficiencies = proficienciesFromBoolMap(out.skills);
+    out.skillProficiencies = proficienciesFromLevelMap(out.skills);
     delete out.skills;
   }
   if (out.savingThrows) {
-    out.saveProficiencies = proficienciesFromBoolMap(out.savingThrows);
+    out.saveProficiencies = proficienciesFromLevelMap(out.savingThrows);
     delete out.savingThrows;
+  }
+  if ('spellSlots' in out) {
+    const enc = encodeSpellSlots(out.spellSlots);
+    if (enc) out.spellSlots = enc; else delete out.spellSlots;
   }
   out = renameKeys(out, FIELD_MAP_OUT);
   for (const f of STRIP_FIELDS) {
@@ -129,29 +165,32 @@ const decodeIncoming = (data) => {
   if (out.skills) {
     const sample = Object.values(out.skills)[0];
     if (sample && typeof sample === 'object') {
-      out.skills = viewMapToBoolMap(out.skills);
+      out.skills = viewMapToLevelMap(out.skills);
     }
   }
   if (out.saves) {
     const sample = Object.values(out.saves)[0];
     if (sample && typeof sample === 'object') {
-      out.savingThrows = viewMapToBoolMap(out.saves);
+      out.savingThrows = viewMapToLevelMap(out.saves);
     } else {
-      out.savingThrows = proficienciesToBoolMap(decodeDictKeys(out.saves));
+      out.savingThrows = proficienciesToLevelMap(decodeDictKeys(out.saves));
     }
     delete out.saves;
   }
   if (out.skillProficiencies) {
     out.skillProficiencies = decodeDictKeys(out.skillProficiencies);
     if (!out.skills || typeof Object.values(out.skills)[0] === 'object') {
-      out.skills = proficienciesToBoolMap(out.skillProficiencies);
+      out.skills = proficienciesToLevelMap(out.skillProficiencies);
     }
   }
   if (out.saveProficiencies) {
     out.saveProficiencies = decodeDictKeys(out.saveProficiencies);
     if (!out.savingThrows) {
-      out.savingThrows = proficienciesToBoolMap(out.saveProficiencies);
+      out.savingThrows = proficienciesToLevelMap(out.saveProficiencies);
     }
+  }
+  if (out.spellSlots) {
+    out.spellSlots = decodeSpellSlots(out.spellSlots);
   }
   return out;
 };

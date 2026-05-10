@@ -5,18 +5,24 @@ export const getModifier = (score) => Math.floor((score - 10) / 2);
 
 export const formatModifier = (mod) => (mod >= 0 ? `+${mod}` : `${mod}`);
 
-export const getSavingThrowBonus = (abilityScore, level, isProficient) => {
-  const mod = getModifier(abilityScore);
-  return isProficient ? mod + getProficiencyBonus(level) : mod;
+const profMultiplier = (profLevel) => {
+  if (profLevel === 'Expertise') return 2;
+  if (profLevel === 'Proficient' || profLevel === true) return 1;
+  return 0;
 };
 
-export const getSkillBonus = (abilityScore, level, isProficient) => {
+export const getSavingThrowBonus = (abilityScore, level, profLevel) => {
   const mod = getModifier(abilityScore);
-  return isProficient ? mod + getProficiencyBonus(level) : mod;
+  return mod + profMultiplier(profLevel) * getProficiencyBonus(level);
 };
 
-export const getPassivePerception = (wisdomScore, level, isPerceptionProficient) => {
-  return 10 + getSkillBonus(wisdomScore, level, isPerceptionProficient);
+export const getSkillBonus = (abilityScore, level, profLevel) => {
+  const mod = getModifier(abilityScore);
+  return mod + profMultiplier(profLevel) * getProficiencyBonus(level);
+};
+
+export const getPassivePerception = (wisdomScore, level, perceptionLevel) => {
+  return 10 + getSkillBonus(wisdomScore, level, perceptionLevel);
 };
 
 export const getSpellSaveDC = (level, spellAbilityScore) => {
@@ -59,14 +65,7 @@ export const getDefaultCharacter = () => ({
   wisdom: 10,
   charisma: 10,
 
-  savingThrows: {
-    strength: false,
-    dexterity: false,
-    constitution: false,
-    intelligence: false,
-    wisdom: false,
-    charisma: false,
-  },
+  savingThrows: {},
 
   skills: {},
 

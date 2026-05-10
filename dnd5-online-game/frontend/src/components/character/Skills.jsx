@@ -11,11 +11,19 @@ const ABILITY_ABBR_RU = {
   charisma: 'ХАР',
 };
 
+const normLevel = (v) => {
+  if (v === true) return 'Proficient';
+  if (v === 'Expertise' || v === 'Proficient') return v;
+  return 'None';
+};
+
 const Skills = ({ data, onChange }) => {
   const skills = data.skills || {};
 
   const setLevel = (skillValue, level) => {
-    const updated = { ...skills, [skillValue]: level === 'Proficient' };
+    const updated = { ...skills };
+    if (level === 'None') delete updated[skillValue];
+    else updated[skillValue] = level;
     onChange({ ...data, skills: updated });
   };
 
@@ -24,18 +32,19 @@ const Skills = ({ data, onChange }) => {
       <h3 className="section-title">Навыки</h3>
       <div className="checks-list">
         {SKILLS.map((skill) => {
-          const isProficient = !!skills[skill.value];
+          const level = normLevel(skills[skill.value]);
           const abilityScore = data[skill.ability] || 10;
-          const bonus = getSkillBonus(abilityScore, data.level || 1, isProficient);
+          const bonus = getSkillBonus(abilityScore, data.level || 1, level);
           return (
             <div key={skill.value} className="check-row">
               <select
                 className="form-select proficiency-select"
-                value={isProficient ? 'Proficient' : 'None'}
+                value={level}
                 onChange={(e) => setLevel(skill.value, e.target.value)}
               >
                 <option value="None">Нет</option>
                 <option value="Proficient">Владение</option>
+                <option value="Expertise">Мастерство</option>
               </select>
               <span className="check-bonus">{formatModifier(bonus)}</span>
               <span className="check-name">{skill.label}</span>
