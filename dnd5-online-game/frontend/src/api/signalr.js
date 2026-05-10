@@ -19,8 +19,8 @@ const HUB_METHODS = {
   LEAVE_ROOM: 'LeaveRoom',
 };
 
-export const connectSession = async (roomId) => {
-  const connection = new signalR.HubConnectionBuilder()
+export const buildSessionConnection = () =>
+  new signalR.HubConnectionBuilder()
     .withUrl(HUB_URL, {
       accessTokenFactory: () => localStorage.getItem('token') || '',
     })
@@ -28,6 +28,7 @@ export const connectSession = async (roomId) => {
     .configureLogging(signalR.LogLevel.Warning)
     .build();
 
+export const startSession = async (connection, roomId) => {
   try {
     await connection.start();
     if (roomId) {
@@ -38,6 +39,11 @@ export const connectSession = async (roomId) => {
     console.warn('[signalr] connect failed:', err?.message);
     return null;
   }
+};
+
+export const connectSession = async (roomId) => {
+  const conn = buildSessionConnection();
+  return startSession(conn, roomId);
 };
 
 export const onSessionEvent = (connection, eventName, handler) => {

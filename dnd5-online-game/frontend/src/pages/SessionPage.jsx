@@ -11,7 +11,7 @@ import { decodeIncoming as decodeCharacter } from '../api/characters';
 import { getProfile } from '../api/auth';
 import { extractApiError } from '../utils/errorMessages';
 import {
-  connectSession, onSessionEvent, disconnectSession, SESSION_EVENTS,
+  buildSessionConnection, startSession, onSessionEvent, disconnectSession, SESSION_EVENTS,
 } from '../api/signalr';
 import PlayerList from '../components/session/PlayerList';
 import DicePanel from '../components/session/DicePanel';
@@ -144,12 +144,9 @@ const SessionPage = () => {
     let unsubs = [];
     let cancelled = false;
 
-    connectSession(roomId).then((conn) => {
-      if (cancelled || !conn) return;
-      signalrRef.current = conn;
-
-      unsubs.push(
-        onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, (p) => {
+    const conn = buildSessionConnection();
+    unsubs.push(
+      onSessionEvent(conn, SESSION_EVENTS.PARTICIPANT_JOINED, (p) => {
           addParticipant(p);
           const who = p.username
             || (p.userId ? `Игрок ${String(p.userId).slice(0, 6)}` : 'Игрок');
@@ -215,13 +212,17 @@ const SessionPage = () => {
             text: `${who} бросил ${dice}: ${total}${isHidden ? ' (скрытый)' : ''}`,
           });
         }),
-        onSessionEvent(conn, SESSION_EVENTS.ROOM_UPDATED, (state) => {
-          if (state?.status === 'FINISHED') {
-            addEvent({ type: 'system', text: 'Сессия завершена мастером' });
-            setTimeout(() => navigate('/'), 1500);
-          }
-        }),
-      );
+      onSessionEvent(conn, SESSION_EVENTS.ROOM_UPDATED, (state) => {
+        if (state?.status === 'FINISHED') {
+          addEvent({ type: 'system', text: 'Сессия завершена мастером' });
+          setTimeout(() => navigate('/'), 1500);
+        }
+      }),
+    );
+
+    startSession(conn, roomId).then((started) => {
+      if (cancelled) return;
+      if (started) signalrRef.current = started;
     });
 
     return () => {
