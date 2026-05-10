@@ -62,6 +62,9 @@ namespace Rooms.Application.Services
                 CreatedAt = DateTime.UtcNow
             };
 
+            var effectiveMode = request.Dice == DiceKind.MAGIC_BALL ? DiceMode.PUBLIC : request.Mode;
+            response.Mode = effectiveMode;
+
             if (request.Dice == DiceKind.MAGIC_BALL)
             {
                 response.MagicBallAnswer = MagicBallAnswers[RandomNumberGenerator.GetInt32(MagicBallAnswers.Length)];
@@ -85,13 +88,12 @@ namespace Rooms.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            if (request.Mode == DiceMode.PUBLIC)
+            if (effectiveMode == DiceMode.PUBLIC)
             {
                 await _notifier.NotifyAsync(roomId, HubEvents.DiceRolled, response, ct);
             }
             else
             {
-
                 await _notifier.NotifyUserAsync(info.Room.MasterId, HubEvents.DiceRolled, response, ct);
                 if (info.Room.MasterId != userId)
                     await _notifier.NotifyUserAsync(userId, HubEvents.DiceRolled, response, ct);

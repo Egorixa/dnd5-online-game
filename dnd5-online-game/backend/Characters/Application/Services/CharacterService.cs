@@ -87,8 +87,6 @@ namespace Characters.Application.Services
             };
 
             character.Attacks.Add(attack);
-            character.UpdatedAt = DateTime.UtcNow;
-            character.RowVersion += 1;
 
             await _context.SaveChangesAsync(ct);
 
@@ -118,8 +116,6 @@ namespace Characters.Application.Services
             attack.Name = dto.Name;
             attack.AttackBonus = dto.AttackBonus;
             attack.Damage = dto.Damage;
-            character.UpdatedAt = DateTime.UtcNow;
-            character.RowVersion += 1;
 
             await _context.SaveChangesAsync(ct);
 
@@ -147,8 +143,6 @@ namespace Characters.Application.Services
                 ?? throw new NotFoundException("Attack not found");
 
             character.Attacks.Remove(attack);
-            character.UpdatedAt = DateTime.UtcNow;
-            character.RowVersion += 1;
 
             await _context.SaveChangesAsync(ct);
 
@@ -186,8 +180,6 @@ namespace Characters.Application.Services
             };
 
             character.Spells.Add(spell);
-            character.UpdatedAt = DateTime.UtcNow;
-            character.RowVersion += 1;
 
             await _context.SaveChangesAsync(ct);
 
@@ -223,8 +215,6 @@ namespace Characters.Application.Services
             spell.Duration = dto.Duration;
             spell.Description = dto.Description;
             spell.Prepared = dto.Prepared;
-            character.UpdatedAt = DateTime.UtcNow;
-            character.RowVersion += 1;
 
             await _context.SaveChangesAsync(ct);
 
@@ -252,8 +242,6 @@ namespace Characters.Application.Services
                 ?? throw new NotFoundException("Spell not found");
 
             character.Spells.Remove(spell);
-            character.UpdatedAt = DateTime.UtcNow;
-            character.RowVersion += 1;
 
             await _context.SaveChangesAsync(ct);
 
