@@ -358,15 +358,17 @@ const SessionPage = () => {
   const handleAddAttack = async (participantId, attack) => {
     const { participant, characterId } = findCharacterIdFor(participantId);
     if (!participant || !characterId) return null;
+    const body = {
+      name: attack?.name || '',
+      attackBonus: attack?.attackBonus ?? 0,
+      damage: attack?.damage || '',
+    };
     try {
-      const { data } = await charactersApi.addAttack(roomId, characterId, {
-        name: attack?.name || '',
-        attackBonus: attack?.attackBonus ?? 0,
-        damage: attack?.damage || '',
-      });
+      const { data } = await charactersApi.addAttack(roomId, characterId, body);
       replaceLocalAttack(participant.userId, data);
       return data;
     } catch (err) {
+      console.warn('[session] addAttack failed:', err?.response?.status, err?.response?.data, 'body=', body);
       useToastStore.getState().error(extractApiError(err) || 'Не удалось добавить атаку');
       return null;
     }
@@ -425,11 +427,23 @@ const SessionPage = () => {
   const handleAddSpell = async (participantId, spell) => {
     const { participant, characterId } = findCharacterIdFor(participantId);
     if (!participant || !characterId) return null;
+    const body = {
+      name: spell?.name || '',
+      level: spell?.level ?? 0,
+      school: spell?.school || '',
+      castingTime: spell?.castingTime || '',
+      range: spell?.range || '',
+      components: spell?.components || '',
+      duration: spell?.duration || '',
+      description: spell?.description || '',
+      prepared: !!spell?.prepared,
+    };
     try {
-      const { data } = await charactersApi.addSpell(roomId, characterId, spell || { name: '', level: 0 });
+      const { data } = await charactersApi.addSpell(roomId, characterId, body);
       replaceLocalSpell(participant.userId, data);
       return data;
     } catch (err) {
+      console.warn('[session] addSpell failed:', err?.response?.status, err?.response?.data, 'body=', body);
       useToastStore.getState().error(extractApiError(err) || 'Не удалось добавить заклинание');
       return null;
     }
