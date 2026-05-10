@@ -282,6 +282,7 @@ namespace Characters.Application.Services
                 .Include(c => c.SaveProficiencies)
                 .Include(c => c.Attacks)
                 .Include(c => c.Spells)
+                .Include(c => c.SpellSlots)
                 .Where(c => c.RoomId == roomId && !c.IsArchived)
                 .ToListAsync(ct);
 
@@ -353,6 +354,7 @@ namespace Characters.Application.Services
                 .Include(c => c.SaveProficiencies)
                 .Include(c => c.Attacks)
                 .Include(c => c.Spells)
+                .Include(c => c.SpellSlots)
                 .FirstOrDefaultAsync(c => c.CharacterId == characterId && c.RoomId == roomId && !c.IsArchived, ct)
                 ?? throw new NotFoundException("Character not found");
             return character;
@@ -387,6 +389,7 @@ namespace Characters.Application.Services
                 .Include(c => c.SaveProficiencies)
                 .Include(c => c.Attacks)
                 .Include(c => c.Spells)
+                .Include(c => c.SpellSlots)
                 .Where(c => c.OwnerUserId == userId && c.RoomId == null && !c.IsArchived)
                 .ToListAsync(ct);
 
@@ -433,6 +436,7 @@ namespace Characters.Application.Services
                 .Include(c => c.SaveProficiencies)
                 .Include(c => c.Attacks)
                 .Include(c => c.Spells)
+                .Include(c => c.SpellSlots)
                 .FirstOrDefaultAsync(c => c.CharacterId == characterId && c.RoomId == null && !c.IsArchived, ct)
                 ?? throw new NotFoundException("Character template not found");
 
@@ -511,9 +515,20 @@ namespace Characters.Application.Services
             if (r.DistinguishingMarks != null) c.DistinguishingMarks = r.DistinguishingMarks;
 
             if (r.SpellcastingClass.HasValue) c.SpellcastingClass = r.SpellcastingClass;
-            if (r.SpellSlotsTotal.HasValue) c.SpellSlotsTotal = r.SpellSlotsTotal.Value;
-            if (r.SpellSlotsUsed.HasValue) c.SpellSlotsUsed = r.SpellSlotsUsed.Value;
             if (r.PreparedLimit.HasValue) c.PreparedLimit = r.PreparedLimit.Value;
+
+            if (r.SpellSlots != null)
+            {
+                c.SpellSlots.Clear();
+                foreach (var (level, slot) in r.SpellSlots.Where(kv => kv.Key >= 1 && kv.Key <= 9))
+                    c.SpellSlots.Add(new SpellSlotLevel
+                    {
+                        CharacterId = c.CharacterId,
+                        Level = level,
+                        Total = slot.Total,
+                        Used = slot.Used
+                    });
+            }
 
             if (r.SkillProficiencies != null)
             {
@@ -598,8 +613,13 @@ namespace Characters.Application.Services
                     throw new ValidationException("spellcastingClass", $"{c.SpellcastingClass} cannot cast spells");
             }
 
-            if (c.SpellSlotsUsed > c.SpellSlotsTotal)
-                throw new ValidationException("spellSlotsUsed", "Used spell slots cannot exceed total");
+            foreach (var slot in c.SpellSlots)
+            {
+                if (slot.Total < 0 || slot.Total > 99)
+                    throw new ValidationException("spellSlots", $"Spell slot total must be 0–99 at level {slot.Level}");
+                if (slot.Used < 0 || slot.Used > slot.Total)
+                    throw new ValidationException("spellSlots", $"Used spell slots cannot exceed total at level {slot.Level}");
+            }
         }
     }
 }

@@ -87,9 +87,8 @@ namespace Characters.Application.Mapping
                 DistinguishingMarks = c.DistinguishingMarks,
 
                 SpellcastingClass = c.SpellcastingClass,
-                SpellSlotsTotal = c.SpellSlotsTotal,
-                SpellSlotsUsed = c.SpellSlotsUsed,
                 PreparedLimit = c.PreparedLimit,
+                SpellSlots = c.SpellSlots.ToDictionary(s => s.Level, s => new SpellSlotDto { Total = s.Total, Used = s.Used }),
 
                 Attacks = c.Attacks
                     .Select(a => new AttackDto

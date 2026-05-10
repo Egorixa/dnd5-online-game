@@ -25,7 +25,8 @@ namespace Shared.Lookups
     public enum ProficiencyLevel
     {
         None,
-        Proficient
+        Proficient,
+        Expertise
     }
 
     public static class SkillCatalog

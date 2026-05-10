@@ -65,12 +65,17 @@ namespace Characters.Application.DTOs
         public List<AttackDto>? Attacks { get; set; }
 
         public CharacterClass? SpellcastingClass { get; set; }
-        public int? SpellSlotsTotal { get; set; }
-        public int? SpellSlotsUsed { get; set; }
         public int? PreparedLimit { get; set; }
+        public Dictionary<int, SpellSlotDto>? SpellSlots { get; set; }
         public List<SpellDto>? Spells { get; set; }
 
         public uint? RowVersion { get; set; }
+    }
+
+    public class SpellSlotDto
+    {
+        public int Total { get; set; }
+        public int Used { get; set; }
     }
 
     public class AttackDto
@@ -169,9 +174,8 @@ namespace Characters.Application.DTOs
         public List<AttackDto> Attacks { get; set; } = new();
 
         public CharacterClass? SpellcastingClass { get; set; }
-        public int SpellSlotsTotal { get; set; }
-        public int SpellSlotsUsed { get; set; }
         public int PreparedLimit { get; set; }
+        public Dictionary<int, SpellSlotDto> SpellSlots { get; set; } = new();
         public List<SpellResponseDto> Spells { get; set; } = new();
     }
 

@@ -91,5 +91,6 @@ namespace Characters.Entities
         public List<SaveProficiency> SaveProficiencies { get; set; } = new();
         public List<Attack> Attacks { get; set; } = new();
         public List<Spell> Spells { get; set; } = new();
+        public List<SpellSlotLevel> SpellSlots { get; set; } = new();
     }
 }

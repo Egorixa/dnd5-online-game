@@ -12,6 +12,7 @@ namespace Characters.Data
         public DbSet<SaveProficiency> SaveProficiencies => Set<SaveProficiency>();
         public DbSet<Attack> Attacks => Set<Attack>();
         public DbSet<Spell> Spells => Set<Spell>();
+        public DbSet<SpellSlotLevel> SpellSlots => Set<SpellSlotLevel>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,10 @@ namespace Characters.Data
                     .WithOne()
                     .HasForeignKey(x => x.CharacterId)
                     .OnDelete(DeleteBehavior.Cascade);
+                e.HasMany(x => x.SpellSlots)
+                    .WithOne()
+                    .HasForeignKey(x => x.CharacterId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<SkillProficiency>(e =>
@@ -58,6 +63,11 @@ namespace Characters.Data
                 e.HasKey(x => new { x.CharacterId, x.Ability });
                 e.Property(x => x.Ability).HasConversion<string>();
                 e.Property(x => x.Level).HasConversion<string>();
+            });
+
+            modelBuilder.Entity<SpellSlotLevel>(e =>
+            {
+                e.HasKey(x => new { x.CharacterId, x.Level });
             });
         }
     }

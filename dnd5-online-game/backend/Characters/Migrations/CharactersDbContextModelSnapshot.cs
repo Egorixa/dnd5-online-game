@@ -378,6 +378,29 @@ namespace Characters.Migrations
                     b.ToTable("character_skill_proficiencies", "characters");
                 });
 
+            modelBuilder.Entity("Characters.Entities.SpellSlotLevel", b =>
+                {
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer")
+                        .HasColumnName("level");
+
+                    b.Property<int>("Total")
+                        .HasColumnType("integer")
+                        .HasColumnName("total");
+
+                    b.Property<int>("Used")
+                        .HasColumnType("integer")
+                        .HasColumnName("used");
+
+                    b.HasKey("CharacterId", "Level");
+
+                    b.ToTable("character_spell_slots", "characters");
+                });
+
             modelBuilder.Entity("Characters.Entities.Spell", b =>
                 {
                     b.Property<Guid>("SpellId")
@@ -482,6 +505,15 @@ namespace Characters.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Characters.Entities.SpellSlotLevel", b =>
+                {
+                    b.HasOne("Characters.Entities.Character", null)
+                        .WithMany("SpellSlots")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Characters.Entities.Character", b =>
                 {
                     b.Navigation("Attacks");
@@ -489,6 +521,8 @@ namespace Characters.Migrations
                     b.Navigation("SaveProficiencies");
 
                     b.Navigation("SkillProficiencies");
+
+                    b.Navigation("SpellSlots");
 
                     b.Navigation("Spells");
                 });

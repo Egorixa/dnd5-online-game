@@ -30,6 +30,15 @@ namespace Characters.Entities
         [Required] [MaxLength(50)] [Column("damage")] public string Damage { get; set; } = string.Empty;
     }
 
+    [Table("character_spell_slots")]
+    public class SpellSlotLevel
+    {
+        [Column("character_id")] public Guid CharacterId { get; set; }
+        [Column("level")] public int Level { get; set; }
+        [Column("total")] public int Total { get; set; }
+        [Column("used")] public int Used { get; set; }
+    }
+
     [Table("character_spells")]
     public class Spell
     {

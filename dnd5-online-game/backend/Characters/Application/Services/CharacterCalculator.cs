@@ -35,9 +35,14 @@ namespace Characters.Application.Services
         public static int PassivePerception(Character c)
         {
             int wisMod = GetAbilityModifier(c, Ability.Wisdom);
-            bool proficient = c.SkillProficiencies
-                .Any(sp => sp.Skill == Skill.Perception && sp.Level == ProficiencyLevel.Proficient);
-            return 10 + wisMod + (proficient ? ProficiencyBonus(c.Level) : 0);
+            var prof = c.SkillProficiencies.FirstOrDefault(sp => sp.Skill == Skill.Perception);
+            int bonus = prof?.Level switch
+            {
+                ProficiencyLevel.Proficient => ProficiencyBonus(c.Level),
+                ProficiencyLevel.Expertise => ProficiencyBonus(c.Level) * 2,
+                _ => 0
+            };
+            return 10 + wisMod + bonus;
         }
 
         public static int? SpellSaveDc(Character c)
@@ -60,17 +65,27 @@ namespace Characters.Application.Services
         {
             var ability = SkillCatalog.AbilityForSkill[skill];
             int mod = GetAbilityModifier(c, ability);
-            bool proficient = c.SkillProficiencies
-                .Any(sp => sp.Skill == skill && sp.Level == ProficiencyLevel.Proficient);
-            return mod + (proficient ? ProficiencyBonus(c.Level) : 0);
+            var prof = c.SkillProficiencies.FirstOrDefault(sp => sp.Skill == skill);
+            int bonus = prof?.Level switch
+            {
+                ProficiencyLevel.Proficient => ProficiencyBonus(c.Level),
+                ProficiencyLevel.Expertise => ProficiencyBonus(c.Level) * 2,
+                _ => 0
+            };
+            return mod + bonus;
         }
 
         public static int SaveBonus(Character c, Ability ability)
         {
             int mod = GetAbilityModifier(c, ability);
-            bool proficient = c.SaveProficiencies
-                .Any(sp => sp.Ability == ability && sp.Level == ProficiencyLevel.Proficient);
-            return mod + (proficient ? ProficiencyBonus(c.Level) : 0);
+            var prof = c.SaveProficiencies.FirstOrDefault(sp => sp.Ability == ability);
+            int bonus = prof?.Level switch
+            {
+                ProficiencyLevel.Proficient => ProficiencyBonus(c.Level),
+                ProficiencyLevel.Expertise => ProficiencyBonus(c.Level) * 2,
+                _ => 0
+            };
+            return mod + bonus;
         }
 
         public static int HitDiceTotal(Character c) => c.Level;
