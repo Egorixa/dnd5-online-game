@@ -25,9 +25,9 @@ namespace Characters.Entities
     {
         [Key] [Column("attack_id")] public Guid AttackId { get; set; }
         [Column("character_id")] public Guid CharacterId { get; set; }
-        [Required] [MaxLength(50)] [Column("name")] public string Name { get; set; } = string.Empty;
+        [MaxLength(50)] [Column("name")] public string Name { get; set; } = string.Empty;
         [Column("attack_bonus")] public int AttackBonus { get; set; }
-        [Required] [MaxLength(50)] [Column("damage")] public string Damage { get; set; } = string.Empty;
+        [MaxLength(50)] [Column("damage")] public string Damage { get; set; } = string.Empty;
     }
 
     [Table("character_spell_slots")]
@@ -44,7 +44,7 @@ namespace Characters.Entities
     {
         [Key] [Column("spell_id")] public Guid SpellId { get; set; }
         [Column("character_id")] public Guid CharacterId { get; set; }
-        [Required] [MaxLength(60)] [Column("name")] public string Name { get; set; } = string.Empty;
+        [MaxLength(60)] [Column("name")] public string Name { get; set; } = string.Empty;
         [Column("level")] public int Level { get; set; }
         [MaxLength(40)] [Column("school")] public string School { get; set; } = string.Empty;
         [MaxLength(60)] [Column("casting_time")] public string CastingTime { get; set; } = string.Empty;
