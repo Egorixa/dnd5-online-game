@@ -335,7 +335,7 @@ const CharacterViewer = ({
               </tbody>
             </table>
             <p className="section-hint" style={{ marginTop: '8px' }}>
-              Подсказка: в поле "Урон" можно использовать статы, например <code>1d8+str</code> или <code>2d6+dex</code>.
+              Подсказка: в поле "Урон" можно писать формулы, например <code>1d8+3</code>.
             </p>
           </div>
         )}
