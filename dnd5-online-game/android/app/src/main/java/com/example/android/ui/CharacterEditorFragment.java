@@ -397,6 +397,24 @@ public class CharacterEditorFragment extends Fragment {
 
         buildSavingThrows(view.findViewById(R.id.saves_container));
         buildSkillRows(view.findViewById(R.id.skills_container));
+        setupDeathCheckCascade(cbDeathS1, cbDeathS2, cbDeathS3);
+        setupDeathCheckCascade(cbDeathF1, cbDeathF2, cbDeathF3);
+    }
+
+    private void setupDeathCheckCascade(CheckBox a, CheckBox b, CheckBox c) {
+        a.setOnClickListener(v -> {
+            if (!a.isChecked()) { b.setChecked(false); c.setChecked(false); }
+            scheduleAutoSave();
+        });
+        b.setOnClickListener(v -> {
+            if (b.isChecked()) { a.setChecked(true); }
+            else { c.setChecked(false); }
+            scheduleAutoSave();
+        });
+        c.setOnClickListener(v -> {
+            if (c.isChecked()) { a.setChecked(true); b.setChecked(true); }
+            scheduleAutoSave();
+        });
     }
 
     private void buildSavingThrows(LinearLayout container) {
@@ -1022,10 +1040,19 @@ public class CharacterEditorFragment extends Fragment {
                                    retrofit2.Response<CharacterDtos.CharacterResponse> response) {
                 if (!isAdded()) return;
                 if (!response.isSuccessful() || response.body() == null) {
+                    String detail = ApiErrors.extract(response, "Ошибка сохранения");
+                    try {
+                        if (response.errorBody() != null) {
+                            String body = response.errorBody().string();
+                            if (!TextUtils.isEmpty(body)) {
+                                detail = "[" + response.code() + "] " + body;
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                    android.util.Log.e("CharacterEditor",
+                            "save failed code=" + response.code() + " body=" + detail);
                     if (!silent) {
-                        Toast.makeText(getContext(),
-                                ApiErrors.extract(response, "Ошибка сохранения"),
-                                Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), detail, Toast.LENGTH_LONG).show();
                     }
                     return;
                 }
