@@ -68,9 +68,9 @@ namespace Characters.Application.Validators
                 RuleFor(x => x.Attacks!.Count).LessThanOrEqualTo(20).WithMessage("Up to 20 attacks");
                 RuleForEach(x => x.Attacks!).ChildRules(a =>
                 {
-                    a.RuleFor(at => at.Name).NotEmpty().Length(1, 50);
+                    a.RuleFor(at => at.Name).MaximumLength(50);
                     a.RuleFor(at => at.AttackBonus).InclusiveBetween(-20, 20);
-                    a.RuleFor(at => at.Damage).NotEmpty().Length(1, 50);
+                    a.RuleFor(at => at.Damage).MaximumLength(50);
                 });
             });
 
@@ -79,7 +79,7 @@ namespace Characters.Application.Validators
                 RuleFor(x => x.Spells!.Count).LessThanOrEqualTo(100).WithMessage("Up to 100 spells");
                 RuleForEach(x => x.Spells!).ChildRules(s =>
                 {
-                    s.RuleFor(sp => sp.Name).NotEmpty().Length(1, 60);
+                    s.RuleFor(sp => sp.Name).MaximumLength(60);
                     s.RuleFor(sp => sp.Level).InclusiveBetween(0, 9);
                 });
             });

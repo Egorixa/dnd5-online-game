@@ -90,14 +90,18 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            try
             {
-                action = "updated",
-                characterName = character.Name,
-                ownerUserName,
-                character = CharacterMapper.ToResponse(character)
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "updated",
+                    characterName = character.Name,
+                    ownerUserName,
+                    character = CharacterMapper.ToResponse(character)
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
 
             return new AttackDto { AttackId = attack.AttackId, Name = attack.Name, AttackBonus = attack.AttackBonus, Damage = attack.Damage };
         }
@@ -119,14 +123,18 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            try
             {
-                action = "updated",
-                characterName = character.Name,
-                ownerUserName,
-                character = CharacterMapper.ToResponse(character)
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "updated",
+                    characterName = character.Name,
+                    ownerUserName,
+                    character = CharacterMapper.ToResponse(character)
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
 
             return new AttackDto { AttackId = attack.AttackId, Name = attack.Name, AttackBonus = attack.AttackBonus, Damage = attack.Damage };
         }
@@ -146,14 +154,18 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            try
             {
-                action = "updated",
-                characterName = character.Name,
-                ownerUserName,
-                character = CharacterMapper.ToResponse(character)
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "updated",
+                    characterName = character.Name,
+                    ownerUserName,
+                    character = CharacterMapper.ToResponse(character)
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
         }
 
         public async Task<SpellResponseDto> AddSpellAsync(Guid userId, Guid roomId, Guid characterId, SpellDto dto, CancellationToken ct = default)
@@ -183,14 +195,18 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            try
             {
-                action = "updated",
-                characterName = character.Name,
-                ownerUserName,
-                character = CharacterMapper.ToResponse(character)
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "updated",
+                    characterName = character.Name,
+                    ownerUserName,
+                    character = CharacterMapper.ToResponse(character)
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
 
             return new SpellResponseDto { SpellId = spell.SpellId, Name = spell.Name, Level = spell.Level, School = spell.School, CastingTime = spell.CastingTime, Range = spell.Range, Components = spell.Components, Duration = spell.Duration, Description = spell.Description, Prepared = spell.Prepared };
         }
@@ -218,14 +234,18 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            try
             {
-                action = "updated",
-                characterName = character.Name,
-                ownerUserName,
-                character = CharacterMapper.ToResponse(character)
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "updated",
+                    characterName = character.Name,
+                    ownerUserName,
+                    character = CharacterMapper.ToResponse(character)
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
 
             return new SpellResponseDto { SpellId = spell.SpellId, Name = spell.Name, Level = spell.Level, School = spell.School, CastingTime = spell.CastingTime, Range = spell.Range, Components = spell.Components, Duration = spell.Duration, Description = spell.Description, Prepared = spell.Prepared };
         }
@@ -245,14 +265,18 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            try
             {
-                action = "updated",
-                characterName = character.Name,
-                ownerUserName,
-                character = CharacterMapper.ToResponse(character)
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "updated",
+                    characterName = character.Name,
+                    ownerUserName,
+                    character = CharacterMapper.ToResponse(character)
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
         }
 
         public async Task<CharacterResponse> GetAsync(Guid userId, Guid roomId, Guid characterId, CancellationToken ct = default)
