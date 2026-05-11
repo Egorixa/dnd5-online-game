@@ -57,14 +57,19 @@ namespace Characters.Application.Services
             await _context.SaveChangesAsync(ct);
 
             var response = CharacterMapper.ToResponse(character);
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+
+            try
             {
-                action = "created",
-                characterName = response.Name,
-                ownerUserName,
-                character = response
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "created",
+                    characterName = response.Name,
+                    ownerUserName,
+                    character = response
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
 
             return response;
         }
@@ -327,14 +332,19 @@ namespace Characters.Application.Services
             await _context.SaveChangesAsync(ct);
 
             var response = CharacterMapper.ToResponse(character);
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+
+            try
             {
-                action = "updated",
-                characterName = response.Name,
-                ownerUserName,
-                character = response
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "updated",
+                    characterName = response.Name,
+                    ownerUserName,
+                    character = response
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
 
             return response;
         }
@@ -353,14 +363,18 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
-            await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+            try
             {
-                action = "deleted",
-                characterId = character.CharacterId,
-                characterName = character.Name,
-                ownerUserName
-            }, ct);
+                var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
+                await _notifier.NotifyAsync(roomId, HubEvents.CharacterUpdated, new
+                {
+                    action = "deleted",
+                    characterId = character.CharacterId,
+                    characterName = character.Name,
+                    ownerUserName
+                }, ct);
+            }
+            catch { /* notification failure must not fail the saved operation */ }
         }
 
         private async Task<Character> LoadAsync(Guid roomId, Guid characterId, CancellationToken ct)
