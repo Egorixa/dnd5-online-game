@@ -95,8 +95,6 @@ namespace Characters.Application.Services
 
             await _context.SaveChangesAsync(ct);
 
-            character.Attacks.Add(attack);
-
             try
             {
                 var ownerUserName = await _userLookup.GetUsernameAsync(character.OwnerUserId, ct);
@@ -201,8 +199,6 @@ namespace Characters.Application.Services
             _context.Set<Spell>().Add(spell);
 
             await _context.SaveChangesAsync(ct);
-
-            character.Spells.Add(spell);
 
             try
             {
