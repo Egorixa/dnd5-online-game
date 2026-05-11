@@ -311,7 +311,7 @@ public class CharacterEditorFragment extends Fragment {
                                     Toast.LENGTH_LONG).show();
                             return;
                         }
-                        editing = CharacterMapper.fromResponse(response.body(), null, userId);
+                        editing = CharacterMapper.fromResponse(response.body(), editing, userId);
                         fillFromCharacter(editing);
                         recalcAll();
                     }

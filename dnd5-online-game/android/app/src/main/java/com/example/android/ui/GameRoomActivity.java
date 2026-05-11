@@ -13,20 +13,27 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.android.R;
+import com.example.android.data.AppDatabase;
 import com.example.android.data.SessionManager;
+import com.example.android.data.dao.CharacterDao;
+import com.example.android.data.model.Character;
 import com.example.android.net.ApiClient;
 import com.example.android.net.ApiErrors;
 import com.example.android.net.api.CharactersApi;
 import com.example.android.net.dto.CharacterDtos;
+import com.example.android.net.mapper.CharacterMapper;
 import com.example.android.net.realtime.RoomHubClient;
 import com.example.android.util.NotificationHelper;
 import com.google.android.material.tabs.TabLayout;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -46,6 +53,7 @@ public class GameRoomActivity extends AppCompatActivity
     private static final String TAG_ROOM = "tab_room";
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     private RoomHubClient hubClient;
     private SessionManager session;
@@ -479,6 +487,28 @@ public class GameRoomActivity extends AppCompatActivity
 
             if ("deleted".equalsIgnoreCase(action)) {
                 return;
+            }
+
+            if (inner != null && mySheet) {
+                final JsonObject innerFinal = inner;
+                final int localUserId = session != null ? session.getUserId() : -1;
+                if (localUserId > 0) {
+                    dbExecutor.execute(() -> {
+                        try {
+                            CharacterDtos.CharacterResponse resp =
+                                    new Gson().fromJson(innerFinal, CharacterDtos.CharacterResponse.class);
+                            if (resp == null || resp.characterId == null) return;
+                            CharacterDao dao = AppDatabase.getInstance(getApplicationContext()).characterDao();
+                            Character existing = dao.findByServerId(resp.characterId);
+                            Character merged = CharacterMapper.fromResponse(resp, existing, localUserId);
+                            if (existing == null) {
+                                dao.insert(merged);
+                            } else {
+                                dao.update(merged);
+                            }
+                        } catch (Throwable ignored) { }
+                    });
+                }
             }
 
             Fragment sheet = getSupportFragmentManager().findFragmentByTag(TAG_SHEET);
