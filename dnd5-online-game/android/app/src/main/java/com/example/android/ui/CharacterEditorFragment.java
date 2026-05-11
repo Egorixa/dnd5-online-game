@@ -643,6 +643,8 @@ public class CharacterEditorFragment extends Fragment {
     }
 
     private void loadAttacksJson(String json) {
+        if (attacksContainer != null) attacksContainer.removeAllViews();
+        attackRows.clear();
         if (TextUtils.isEmpty(json)) return;
         try {
             Type t = new TypeToken<List<AttackEntry>>() {}.getType();
@@ -717,6 +719,8 @@ public class CharacterEditorFragment extends Fragment {
     }
 
     private void loadSpellsJson(String json) {
+        if (spellsContainer != null) spellsContainer.removeAllViews();
+        spellRows.clear();
         if (TextUtils.isEmpty(json)) return;
         try {
             Type t = new TypeToken<List<SpellEntry>>() {}.getType();
